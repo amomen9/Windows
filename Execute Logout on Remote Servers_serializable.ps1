@@ -150,7 +150,7 @@ foreach ($server in $servers) {
 }
 
 
-Write-Host "`n`n`n`nTotal servers processed were: $($servers.count)`n$count_criteria_found servers had sessions with the given criteria`n$count_criteria_not_found servers did not match the criteria`n$($failedSessions.Count) servers were out of reach`n`n"
+Write-Host "`n`n`n`n$($servers.count) total servers processed`n$count_criteria_found servers had sessions with the given criteria`n$count_criteria_not_found servers did not match the criteria`n$($failedSessions.Count) servers were out of reach`n`n"
 
 
 if ($failedSessions.Count -gt 0) {
