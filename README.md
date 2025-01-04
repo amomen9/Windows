@@ -3,7 +3,7 @@ Windows docs, PowerShell, and CMD commands
 
 ## PowerShell Version
 
-The scripts are compatible with PowerShell version 5 and later
+The scripts are compatible with PowerShell version `5` and later
 
 
 ### 1. logoff user (local computer).ps1
