@@ -46,6 +46,8 @@ $failedSessions = @()
 $count_criteria_found=0
 $count_criteria_not_found=0
 
+
+##-------------------- Loop through servers -----------------------------
 foreach ($server in $servers) {
 
     try {
