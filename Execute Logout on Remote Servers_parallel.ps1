@@ -191,7 +191,21 @@ foreach ($server in $servers) {
 }
 
 # Wait for all jobs to complete 
-$jobs | ForEach-Object { Wait-Job -Job $_ | Select-Object Name, PSJobTypeName, State | Format-Table -AutoSize -Wrap -HideTableHeaders } #| Format-Table -AutoSize #-Wrap #> $null
+$jobs | ForEach-Object {
+    $job = Wait-Job -Job $_
+
+    # Adjust the lengths of each property
+    $name = $job.Name.PadRight(25).Substring(0, 25)
+    $type = $job.PSJobTypeName.PadRight(20).Substring(0, 20)
+    $state = $job.State.PadRight(10).Substring(0, 10)
+    
+    # Create a custom object with the formatted properties
+    [PSCustomObject]@{
+        Name = $name
+        PSJobTypeName = $type
+        State = $state
+    }
+} | Select-Object Name, PSJobTypeName, State
 
 # Get the results 
 $outputs = ($jobs | ForEach-Object { Receive-Job -Job $_ })
