@@ -17,7 +17,7 @@ $password = 'P@@S$sW0rd'
 $servers=@(
 "<IP1>", "<IP2>", "<NS Name1>", "<NS Name2>" 
 )
-## The pattern based on which the users sessions are looked up for on the target servers. For example $user='men' will
+## The regex pattern based on which the users sessions are looked up for on the target servers. For example $user='men' will
 ## find the users like "a.momen" or "a.momen@domain" or "moremen" (it is similar to my last name :D) or "morewomen"
 $user = 'a.ma';
 ## Choose whether you also want to logoff the user(s) or not. Write "yes" or "no"
