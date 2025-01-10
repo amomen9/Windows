@@ -1,5 +1,5 @@
 
-![](https://img.shields.io/badge/-%23FFFFFF.svg?&style=flat-square&logo=PowerShell&logoColor=red)
+![[Windows](https://img.shields.io/badge/Windows-supported-green)](https://www.microsoft.com/windows/)
 
 # Windows
 Windows docs, PowerShell, and CMD commands
