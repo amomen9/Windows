@@ -47,4 +47,10 @@ The input "$user" parameter can be a regular expression. The found results per s
 
 ![users parallel](image/Picture2.png)
 
----  
+---
+
+<!--
+4. Execute any Script on Remote Servers in Parallel:
+
+Execute any script on multiple remote servers in parallel
+-->
