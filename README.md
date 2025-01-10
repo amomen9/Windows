@@ -1,6 +1,6 @@
 
-![Windows](https://img.shields.io/badge/Windows-green)]
-![PowerShell](https://img.shields.io/badge/PowerShell-blue)]
+![Windows](https://img.shields.io/badge/Windows-green)
+![PowerShell](https://img.shields.io/badge/PowerShell-blue)
 
 # Windows
 Windows docs, PowerShell, and CMD commands
