@@ -65,18 +65,18 @@ foreach ($server in $servers) {
 
     $counter++
     $jobName = "($counter/$($servers.count)) "+"$server"
-    $job = Start-ThreadJob -Name $jobName -ArgumentList $server, $cred, $user, $show_servers_with_no_matching_results, $logoff_user -ScriptBlock { 
-        param($server, $cred, $user, $show_servers_with_no_matching_results, $logoff_user)
+    $job = Start-ThreadJob -Name $jobName -ArgumentList $server, $cred, $user, $show_servers_with_no_matching_results, $logoff_user, $counter -ScriptBlock { 
+        param($server, $cred, $user, $show_servers_with_no_matching_results, $logoff_user, $counter)
 
         try {
     
 
             $session = New-PSSession -ComputerName $server -Credential $cred -ErrorAction Stop        
             
-            $output = Invoke-Command -Session $session -ArgumentList $user, $show_servers_with_no_matching_results, $logoff_user -ScriptBlock {
+            $output = Invoke-Command -Session $session -ArgumentList $user, $show_servers_with_no_matching_results, $logoff_user, $counter -ScriptBlock {
             
                         
-                param($user, $show_servers_with_no_matching_results, $logoff_user)
+                param($user, $show_servers_with_no_matching_results, $logoff_user, $counter)
             
                 
                 $sessions = (query user | Select-Object -Skip 1 | Where-Object { $_ -match $user }) 2>$null;
@@ -94,12 +94,13 @@ foreach ($server in $servers) {
                 }                
                 
 
-                $output.ServerName = "`n`n$env:COMPUTERNAME",":"
+                $output.ServerName = "`n$env:COMPUTERNAME",":"
+
                 if([string]::IsNullOrEmpty($sessions)) {
 
                     if($show_servers_with_no_matching_results -eq "yes") {
                   
-                        $output.LogoffMessage_no_session = "No logged-in session was found for a username matching $user."
+                        $output.LogoffMessage_no_session = "No logged-in session was found for a username matching `"$user`"."
                     }
 
                     $output.count_criteria_not_found+=1
@@ -227,17 +228,17 @@ foreach ($output in $outputs) {
 
 
 
-Write-Host "`n`n`n`n$($servers.count) total servers processed`n
-$count_criteria_found servers had sessions with the given criteria`n
-$count_criteria_not_found servers did not match the criteria`n
+Write-Host "`n`n`n`n$($servers.count) total servers processed
+$count_criteria_found servers had sessions with the given criteria
+$count_criteria_not_found servers did not match the criteria
 $($failedSessions.Count) servers were out of reach`n`n"
 
 
 if ($failedSessions.Count -gt 0) {
-    Write-Host "`n----------------------------------`nSome connections failed:" -ForegroundColor Red
+    Write-Host "----------------------------------`nSome connections failed:" -ForegroundColor Red
     $failedSessions | Format-Table -AutoSize
 } else {
-    Write-Host "`n----------------------------------`nAll connections were successful." -ForegroundColor Green
+    Write-Host "----------------------------------`nAll connections were successful." -ForegroundColor Green
 }
 
 
