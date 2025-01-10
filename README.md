@@ -1,3 +1,6 @@
+
+![](https://img.shields.io/badge/-%23FFFFFF.svg?&style=flat-square&logo=PowerShell&logoColor=red)
+
 # Windows
 Windows docs, PowerShell, and CMD commands
 
