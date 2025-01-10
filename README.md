@@ -46,4 +46,5 @@ The input "$user" parameter can be a regular expression. The found results per s
 *Sample output for $user = ".":*
 
 ![users parallel](image/Picture2.png)
-  
+
+---  
