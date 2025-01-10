@@ -5,6 +5,7 @@ Windows docs, PowerShell, and CMD commands
 
 The scripts are compatible with PowerShell version `5` and later
 
+---
 
 ### 1. logoff user (local computer).ps1
 
@@ -12,6 +13,7 @@ This very simple script demonstrates how to extract the session Id of an account
  to log off that user. Obviously, admin rights are required to log off other users' sessions. The log off command only accepts
  the user's session Id.
  
+--- 
  
 ### 2. Execute Logout on Remote Servers Serializably 
 
@@ -25,7 +27,7 @@ This script can also be used as a report to identify the users that have logged 
 This script can both report the servers with your logged on sessions and also execute remote logoff command for your or
  someone else's session.
 
-
+---
 
 ### 3. Execute Logout on Remote Servers in Parallel 
 
@@ -41,7 +43,7 @@ This script can both report the servers with your logged on sessions and also ex
  
 The input "$user" parameter can be a regular expression. The found results per server can be a list of any users matching the search pattern "$user"
 
-Sample output for $user = ".":
+*Sample output for $user = ".":*
 
 ![users parallel](image/Picture2.png)
   
