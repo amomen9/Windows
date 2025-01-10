@@ -47,6 +47,11 @@ The input "$user" parameter can be a regular expression. The found results per s
 
 ![users parallel](image/Picture2.png)
 
+Or, output when some connections fail:
+
+![users parallel](image/Picture3.png)
+
+
 ---
 
 <!--
