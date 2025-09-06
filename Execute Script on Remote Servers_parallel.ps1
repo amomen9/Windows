@@ -1,4 +1,4 @@
-﻿
+
 ################################################################
 ## Author: Ali Momen                                          ##
 ## Email: amomen@gmail.com                                    ##
@@ -15,7 +15,8 @@ $username = 'domain.com\a.momen'
 $password = 'P@@S$sW0rd'
 ## The target servers IP/NS Name
 $servers=@(
-"<IP1>", "<IP2>", "<NS Name1>", "<NS Name2>" 
+#"<IP1>", "<IP2>", "<NS Name1>", "<NS Name2>" 
+"192.168.171.183"
 )
 ## The regex pattern based on which the users sessions are looked up for on the target servers. For example $user='men' will
 ## find the users like "a.momen" or "a.momen@domain" or "moremen" (it is similar to my last name :D) or "morewomen"
@@ -54,6 +55,7 @@ $failedSessions = @()
 
 "Number of Servers: " + $servers.Count
 
+$servers.
 
 $count_criteria_found=0
 $count_criteria_not_found=0
