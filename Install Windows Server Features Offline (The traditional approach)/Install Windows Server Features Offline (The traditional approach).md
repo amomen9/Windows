@@ -77,3 +77,9 @@ Restart-Service sshd
 # Verify the service is listening on the new port
 Get-NetTCPConnection -LocalPort $port -State Listen
 ```
+
+Read more:
+
+[Features On Demand | Microsoft Learn](https://learn.microsoft.com/en-us/windows-hardware/manufacture/desktop/features-on-demand-v2--capabilities?view=windows-11)
+
+[Get started with OpenSSH Server for Windows | Microsoft Learn](https://learn.microsoft.com/en-us/windows-server/administration/openssh/openssh_install_firstuse?tabs=gui&pivots=windows-server-2022)
