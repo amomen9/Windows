@@ -1,0 +1,2052 @@
+## Temp Commands:
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths" /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\ssms.exe" /ve /d "C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Ssms.exe" /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\devart.exe" /ve /d "D:\Program Files\Devart\dbForge Studio for SQL Server\dbforgesql.exe" /f
+
+make traditional/classical context menu default in Win11:
+reg add "HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}\InprocServer32" /f
+reg add "HKEY_CURRENT_USER\Software\Classes\CLSID\{86ca1aa0-34aa-4e8b-a509-50c905bae2a2}" /f
+
+###############################################################
+##-------------------------------------------------------------
+# Listing Win32 (traditionally installed) apps
+Get-ItemProperty `
+    HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
+    HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* `
+| Select-Object DisplayName, DisplayVersion, Publisher
+
+# Listing Microsoft Store apps
+Get-AppxPackage | Select-Object Name, Version, Publisher
+##--------------- Full Export: --------------------------------
+# Build Win32 list (registry)
+$win32 = Get-ItemProperty `
+  HKLM:\Software\Microsoft\Windows\CurrentVersion\Uninstall\*, `
+  HKLM:\Software\Wow6432Node\Microsoft\Windows\CurrentVersion\Uninstall\* `
+| Where-Object { $_.DisplayName -and $_.DisplayName.Trim() -ne '' } `
+| Select-Object @{Name='Name';Expression={$_.DisplayName}},
+                @{Name='Version';Expression={$_.DisplayVersion}},
+                @{Name='Publisher';Expression={$_.Publisher}},
+                @{Name='UninstallString';Expression={$_.UninstallString}},
+                @{Name='Source';Expression={'Win32'}}
+
+# Build Store list (current user or -AllUsers if desired)
+$store = Get-AppxPackage -AllUsers |
+  Select-Object @{Name='Name';Expression={$_.Name}},
+                @{Name='Version';Expression={$_.Version}},
+                @{Name='Publisher';Expression={$_.Publisher}},
+                @{Name='Source';Expression={'Store'}}
+
+# Combine
+$combined = $win32 + $store
+
+# 1) Build a KB list from Get-HotFix (installed Windows updates)
+$kbList = Get-HotFix | ForEach-Object { $_.HotFixID }  # e.g., KB123456
+
+# 2) Define exclusion regex patterns (adjust as needed)
+$excludePatterns = @(
+  'KB\d{5,}',                 # KB numbers
+  '\bUpdate\b',               # word Update
+  'Security Update', 
+  '\bHotfix\b',
+  'Service Pack',
+  'Cumulative Update'
+) -join '|'
+$regex = [regex]::new($excludePatterns, [System.Text.RegularExpressions.RegexOptions]::IgnoreCase)
+
+# 3) Filter: remove items whose Name matches patterns OR whose Name contains a KB in $kbList
+$filtered = $combined | Where-Object {
+  $name = $_.Name -as [string]
+  if ($null -eq $name) { $true } else {
+    $isUpdateByPattern = $regex.IsMatch($name)
+    $containsKB = $kbList | Where-Object { $name -match $_ } 
+    -not ($isUpdateByPattern -or $containsKB)
+  }
+}
+
+# Export result
+$filtered | Sort-Object Name | Export-Csv -Path "$env:USERPROFILE\Desktop\InstalledApps_NoUpdates.csv" -NoTypeInformation
+
+###############################################################
+
+
+
+
+---------------------------------------------------------------
+
+"D:\Program Files\Devart\dbForge Studio for SQL Server\dbforgesql.exe"
+
+
+# Install VNC-Server
+"%userprofile%\Dropbox\apps\VNC.Connect.Enterprise.6.4.1\VNC.Connect.Enterprise.6.4.1_Soft98.iR.exe" /qn REBOOT=ReallySuppress LICENSEKEY=CX3RJ-PQZTH-4LKRB-X38UM-XJNGA ENABLEAUTOUPDATECHECKS=1 ENABLEANALYTICS=1
+curl --output 1.exe https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.4-Windows.exe
+
+psexec \\WSER19HVVM cmd
+psexec -u WSER19HVVM\administrator -p 111036 \\ServerName cmd
+
+sleep, wait, NOOP, NOP
+timeout /t 5 & taskkill /T /F /IM explorer.exe & timeout /t 8 & start explorer.exe 
+
+curl --output 1.png https://upload.wikimedia.org/wikipedia/commons/e/e0/Supersonus_aequoreus_male_POne.0098708.g001_Fig_A_%28cropped%29.png
+
+robocopy "\\WSER19HVVM\f$\VNC.Connect.Enterprise.6.7.2_Soft98.iR.exe" "f:\" /E /IS
+# Copy directory tree only
+robocopy "C:\source\path" "C:\destination\path" /E /XF *
+
+rem resolve access denied for psexec or c$ d$ fix admin share:
+reg add HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1 /f
+Restart-Service -Name LanmanServer, LanmanWorkstation -Force
+
+start ssms from run command:
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths" /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\ssms.exe" /ve /d "C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Ssms.exe" /f
+
+::HKLM\SOFTWARE\Microsoft\Windows\CurrentVersion\
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\notepad++.exe"
+
+ /v LocalAccountTokenFilterPolicy /t REG_DWORD /d 1
+
+ssh -L <port>:<node_hostname>.ten.osc.edu:<port> <username>@pitzer.osc.edu
+
+runas /noprofile /env /user:wser19svm\ali "notepad \"my file.txt\""
+
+display user info:
+net user a.momen /domain
+
+Net user Ali 111036 /add
+Net localgroup administrators Ali /add
+wmic path Win32_UserAccount WHERE Name='admin' set PasswordExpires=false
+
+change windows password:
+net user  login  newpassword
+
+net user administrator /active:yes
+
+#OpenSSH.Server:
+Add-WindowsCapability -Online -Name OpenSSH.Server~~~~0.0.1.0
+Start-Service sshd
+Set-Service -Name sshd -StartupType 'Automatic'
+
+#OpenSSH.Client:
+Add-WindowsCapability -Online -Name OpenSSH.Client~~~~0.0.1.0
+
+Setup.exe /PID="AAAAA-BBBBB-CCCCC-DDDDD-EEEEE" /SECURITYMODE=SQL /SAPWD="***" /ConfigurationFile=SQLServer19_Silent_Installation_Conf_File.ini > c:\sqlsetuplog.txt
+
+g:\Setup.exe /ConfigurationFile="%userprofile%\dropbox\learning\SQL Server\ConfigurationFileOpenRPython.ini" > c:\sqlsetuplog0537.txt
+
+ssms:
+<path where SSMS-Setup-ENU.exe file is located> /Quiet SSMSInstallRoot=<path where you want to install SSMS>
+start "" /w <path where SSMS-Setup-ENU.exe file is located> /Quiet SSMSInstallRoot=<path where you want to install SSMS>
+
+CU: (/passive is not supported)
+"\\172.16.40.20\c$\Sql Server 2019\SQLServer2019-CU14\SQLServer2019-KB5007182-x64.exe" /action=patch /instancename=MSSQLSERVER /quiet /IAcceptSQLServerLicenseTerms
+
+WMIC computersystem where caption='current_pc_name' rename WSER19VM
+
+C:\Windows\Microsoft.NET\Framework64\v4.0.30319\csc.exe /target:library /out:CLRUtilities.dll StringSplit.cs
+
+enable hibernation:
+powercfg /hibernate on
+
+del /F /Q *
+
+rmdir /S /Q
+
+wifi ssid password
+netsh wlan show profile name="Irancell-TD-i40-A1_5G_314B" key=clear | find /i "Key Content"
+netsh wlan show profile name="TP-Link_0E42" key=clear | find /i "Key Content"
+69610899
+netsh wlan show profile name="AndroidAPA50" key=clear | find /i "Key Content"
+netsh wlan show profile name="taknet" key=clear | find /i "Key Content"
+xm[~AN=\0-
+netsh wlan show profile name="JobVision" key=clear | find /i "Key Content"
+netsh wlan show profile name="Armin" key=clear | find /i "Key Content"
+6687254731242
+netsh wlan show profile name="JobVision-3rd" key=clear | find /i "Key Content"
+netsh wlan show profile name="JobVision_DLink" key=clear | find /i "Key Content"
+netsh wlan show profile name="Asus" key=clear | find /i "Key Content"
+netsh wlan show profile name="JobVision-WiFi" key=clear | find /i "Key Content"
+netsh wlan show profile name="iPhone (2)" key=clear | find /i "Key Content"
+change network cost mode (metered connection)
+netsh wlan set profileparameter name="AndroidAPA6+" cost=fixed
+
+
+### Map(mount) network drive:
+```
+1. Command-line
+	NET use * \\192.168.241.1\c$\  /user:Accounts\User1 <password> /persistent:yes
+	NET use * "\\vmware-host\Shared Folders" /persistent:yes
+2. map to Z: by replacing the previous location mapped to Z: via Registry
+reg add "HKEY_CURRENT_USER\Network\Z" /f
+
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\Z" /ve /d "C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Ssms.exe" /f
+reg add "HKEY_CURRENT_USER\SOFTWARE\Microsoft\Windows\CurrentVersion\App Paths\ssms.exe" /ve /d "C:\Program Files (x86)\Microsoft SQL Server Management Studio 18\Common7\IDE\Ssms.exe" /f
+
+Computer\HKEY_CURRENT_USER\Network\Z
+
+```
+
+
+
+codepage persian 1256
+
+tp-a:
+URiX6pZSUfxES4m
+
+net user USERNAME NewPass
+net user USERNAME *
+
+net user /domain amomen *
+
+
+shell:common startup
+shell:startup
+
+slmgr /skms kms.digiboy.ir
+slmgr /ato
+slmgr /xpr
+
+for /L %i in (1,1,4) do sqlcmd -i oltp.sql
+
+for transferring files over network:
+psexec -i \\192.168.241.10 -u home\Ali -p 111036am; xcopy "\\192.168.241.100\C$\Users\ali\Desktop\1.png" "\\192.168.241.10\C$\Users\Ali\Desktop\n\" /S /Y /F /I
+
+tasklist /S 192.168.241.4 /nh | sort /R /+65
+
+watch equivalent in windows
+for /l %g in () do @(tasklist | findstring -i ssms & timeout /t 1)
+
+docker run -d -p 80:80 docker/getting-started
+
+
+----------------- SID Related: --------------------------------
+get machine SID:
+dsquery * -Filter "(name=MyComputer)" -attr objectSID
+dsquery computer -name "MyComputer" | dsget computer -SID
+Requires CMDlet to exist:
+powershell get-adcomputer computername -prop sid
+
+wmic useraccount where name='username' get sid
+wmic useraccount where name='%username%' get sid
+
+Get SID for current logged in domain user
+whoami /user
+
+Get SID for the local administrator of the computer
+wmic useraccount where (name='administrator' and domain='computername') get name,sid
+
+Get SID for the domain administrator
+wmic useraccount where (name='administrator' and domain='userdomain') get name,sid
+
+Find username from a SID
+wmic useraccount where sid='S-1-3-12-1234525106-3567804255-30012867-1437' get name
+---------------------------------------------------------------
+
+
+
+tzutil /l
+print list of available timezones in the form of:
+<display name>
+<time zone id>
+
+tzutil /s "Iran Standard Time"
+
+synchronize time with another server:
+net time \\DOMAINSERVER /set /y
+net time \\DOMAINSERVER /set /y
+
+to time.windows.com ntp:
+w32tm /resync
+
+to domain controller:
+w32tm /domain
+
+to custom server:
+w32tm /config /update /manualpeerlist:time.server.url.com	
+
+# When getting the error (service not started)
+net stop w32time
+w32tm /unregister
+w32tm /register
+net start w32time
+w32tm /resync
+
+w32tm /resync /rediscover
+
+
+### dism
+```
+get all the features for dism
+(
+"%userprofile%\Dropbox\apps & settings\Docs\Win11_Dism_features.txt"
+"%userprofile%\Dropbox\apps & settings\Docs\WinSer2022_Dism_features.txt"
+)
+dism /online /get-features
+Dism /online /Get-FeatureInfo /FeatureName:<feature_name>
+
+
+
+Add-WindowsCapability -Online -Name telnet-client
+
+## some notable features:
+dism /online /Enable-Feature /FeatureName:TelnetClient
+dism /online /Enable-Feature /FeatureName:BdeAducExtTool /all
+dism /online /add-capability /capabilityname:Rsat.ActiveDirectory.DS-LDS.Tools~~~~0.0.1.0
+#mandatory features for BdeAducExtTool: DirectoryServices-DomainController-Tools, RSAT-ADDS-Tools-Feature, RSAT-AD-Tools-Feature, ServerManager-Core-RSAT-Role-Tools
+
+
+
+
+## PowerShell:
+
+Add-WindowsFeature -Name Wireless-Networking
+``` dism
+
+
+wmic /OUTPUT:CLIPBOARD MEMORYCHIP
+
+-------------------------------------------
+rem #test/check/verify connection to domain controller DC:
+
+powershell Test-ComputerSecureChannel -Verbose
+
+rem #repair your Computer Secure Channel:
+
+powershell Test-ComputerSecureChannel -Repair -Verbose
+
+rem #next resort: reset secure connection with domain controller:
+
+NETDOM RESET "WIN-3GBO8LGED82" /Domain:HOME.local /UserO:administrator /PasswordO:* /SecurePasswordPrompt
+-------------------------------------------
+
+
+------------------------------------------------------------------------------------------
+#For SQL Server installation:
+fsutil 8dot3name set 1
+fsutil behavior set disablelastaccess 1
+
+
+start performance counter (data collector set) by name:
+logman start Perfmon-SQL
+powershell -command "$status = Get-SMPerformanceCollector -CollectorName "Perfmon-SQL";if ($status -eq 'Stopped'){ Start-SMPerformanceCollector -CollectorName "Perfmon-SQL"; };"
+
+
+### Install OpenSSH server on Windows:
+
+Set-Location "$($env:USERPROFILE)\desktop"
+
+md "C:\Program Files\OpenSSH"
+
+$url = 'https://github.com/PowerShell/Win32-OpenSSH/releases/latest/'
+## Create a web request to retrieve the latest release download link
+ $request = [System.Net.WebRequest]::Create($url)
+ $request.AllowAutoRedirect=$false
+ $response=$request.GetResponse()
+ $source = $([String]$response.GetResponseHeader("Location")).Replace('tag','download') + '/OpenSSH-Win64.zip'
+## Download the latest OpenSSH for Windows package to the current working directory
+ $webClient = [System.Net.WebClient]::new()
+ $webClient.DownloadFile($source, (Get-Location).Path + '\OpenSSH-Win64.zip')
+
+# Extract the ZIP to a temporary location
+Expand-Archive -Path .\OpenSSH-Win64.zip -DestinationPath ($env:temp) -Force
+
+# Move manually if this returns an error
+# Move the extracted ZIP contents from the temporary location to C:\Program Files\OpenSSH\
+ Move-Item "$(([System.IO.Path]::GetTempPath()))\OpenSSH-Win64\*" -Destination "C:\Program Files\OpenSSH\" -Force
+
+
+# Unblock the files in C:\Program Files\OpenSSH\
+ Get-ChildItem -Path "C:\Program Files\OpenSSH\" | Unblock-File
+
+# This installs OpenSSH SSH Server service (sshd) and OpenSSH Authentication Agent service (sshd-agent).
+& 'C:\Program Files\OpenSSH\install-sshd.ps1'
+
+
+# Remove downloaded package
+Remove-Item -Path .\OpenSSH-Win64.zip
+
+Set-Service -Name ssh-agent -StartupType Automatic
+Set-Service -Name sshd -StartupType Automatic
+
+# Set permissions inside windows explorer: *) in advanced dialog box of permissions, transfer OpenSSH folder and its child objects' ownership to the local system account,
+# and the "Replace all child object permissions ..." all in one place
+
+NET START ssh-agent
+NET START sshd
+
+#################################################################################
+
+export "msinfo" report into a file
+msinfo32 /nfo %userprofile%\Desktop\MySYSInfo.nfo
+
+write route:
+route -p add 10.10.10.0 mask 255.255.255.0 10.10.10.1 metric 10 if 8
+route -p add 172.16.0.0 mask 255.255.0.0 192.168.54.1
+route delete 10.41.0.0 mask 255.255.0.0
+route delete 10.*
+-f: Clears the routing tables of all gateway entries. If this is used in conjunction with one of the commands, the tables are cleared prior to running the command.
+
+
+Sample route fixation:
+#########
+route -f
+restart
+route add -p          0.0.0.0 mask         0.0.0.0    192.168.171.1   metric 300 if 3
+route add -p    192.168.100.0 mask   255.255.255.0    192.168.100.10  metric  26 if 8
+route add -p   192.168.100.10 mask 255.255.255.255    192.168.100.10  metric 20 if 8
+route add -p  192.168.100.255 mask 255.255.255.255    192.168.100.10  metric 20 if 8
+rem route add -p    192.168.171.0 mask   255.255.255.0    192.168.171.10  metric 281 if 3
+rem route add -p   192.168.171.10 mask 255.255.255.255    192.168.171.10  metric 281 if 3
+rem route add -p  192.168.171.255 mask 255.255.255.255    192.168.171.10  metric 281 if 3
+rem route add -p        224.0.0.0 mask       240.0.0.0    192.168.171.10  metric 281 if 3
+rem route add -p        224.0.0.0 mask       240.0.0.0    192.168.100.10  metric 281 if 8
+rem route add -p  255.255.255.255 mask 255.255.255.255    192.168.171.10  metric 281 if 3
+rem route add -p  255.255.255.255 mask 255.255.255.255    192.168.100.10  metric 281 if 8
+#########
+
+
+get number of processor cores:
+Get-WmiObject –class Win32_processor | ft NumberOfCores,NumberOfLogicalProcessors
+
+
+get FQDN:
+$env:USERDNSDOMAIN
+
+
+This will return all DNS servers in the root and child domains:
+NSlookup
+Set type=NS
+"type your root domain name here"
+
+
+Get-AdDomainController
+
+
+If you just desire to identify which domain controller the user retrieved group policies from you can type gpresult /r. The returned results will provide you the name of the domain controller that provided the logged on user with GPOs
+
+
+rem check if the command prompt is elevated. administrator
+whoami /groups | find "S-1-16-12288" | find /c /v ""
+rem or
+rem figure if the cmd elevated (also can figure if the user is capable of elevation)
+netstat -anob | findstr "The requested operation requires elevation"
+
+
+Computer\HKEY_CURRENT_USER\Control Panel\Desktop\WindowMetrics
+
+
+netsh winsock reset
+netsh int ip reset
+ipconfig /release
+ipconfig /renew
+ipconfig /flushdns
+shutdown /r /f /t 0
+
+
+*100*1*0#
+
+
+start data collector:
+powershell -command "$status = Get-SMPerformanceCollector -CollectorName "Perfmon-SQL";if ($status -eq 'Stopped'){ Start-SMPerformanceCollector -CollectorName "Perfmon-SQL"; };"
+logman start Perfmon-SQL
+
+
+netstat -anb
+
+
+powershell New-NetFirewallRule -DisplayName "SQLPort" -Direction Inbound -LocalPort 2828 -Protocol TCP -Action Allow
+powershell "New-NetFirewallRule -DisplayName \"DuplicateFinder\" -Direction Outbound -Program \"C:\Program Files\Easy Duplicate Finder 7\EasyDuplicateFinder.exe\" -Action Block"
+powershell "New-NetFirewallRule -DisplayName \"DuplicateFinder\" -Program \"C:\Program Files\Easy Duplicate Finder 7\EDFMonitor.exe\" -Direction Outbound -Action Block"
+
+
+-------------------------------------------------------------------------------------
+Important Event Ids:
+*- shutdown: 1074
+Windows Logs\System
+
+Audit Authentication:
+Logon 4624
+Logon failure 4625
+logoff completed 4634
+logoff initiated 4647
+A user successfully logged on to a computer using explicit credentials while already logged on as a different user. 4648
+user disconnected 4779
+
+failover 2049
+
+-------------------------------------------------------------------------------------
+
+
+### To turn off "Give me updates for other Microsoft products when I update Windows":
+```
+Powershell either of the following:
+(New-Object -com "Microsoft.Update.ServiceManager").RemoveService("7971f918-a847-4430-9279-4a52d1efe18d")
+
+If ((New-Object -ComObject Microsoft.Update.ServiceManager).Services | Where-Object { $_.ServiceID -eq "7971f918-a847-4430-9279-4a52d1efe18d"}) {
+(New-Object -ComObject Microsoft.Update.ServiceManager).RemoveService("7971f918-a847-4430-9279-4a52d1efe18d")
+}
+
+Command-line either of the following:
+
+powershell (New-Object -com \"Microsoft.Update.ServiceManager\").RemoveService(\"7971f918-a847-4430-9279-4a52d1efe18d\")
+
+powershell "If ((New-Object -ComObject Microsoft.Update.ServiceManager).Services | Where-Object { $_.ServiceID -eq \"7971f918-a847-4430-9279-4a52d1efe18d\"}) {(New-Object -ComObject Microsoft.Update.ServiceManager).RemoveService(\"7971f918-a847-4430-9279-4a52d1efe18d\")}"
+
+
+```
+
+
+### Task Scheduler ###
+```
+# With XML:
+schtasks /create /xml "\\172.16.40.20\d$\Synchronize Time with DC.xml" /tn "Synchronize Time with DC"
+SCHTASKS /Delete /TN "Synchronize Time with DC" /F
+
+# With CMD command:
+
+```
+
+
+
+### enabling "Active Directory Users and Computers" feature:
+on windows server:
+dism /online /enable-feature /all /featurename=DirectoryServices-DomainController-Tools
+on workstation:
+go to optional features
+
+
+
+Get file hash
+Get-FileHash "Path to File" -Algorithm MD5
+forfiles /s /m *.jpg /c "cmd /c CertUtil -hashfile @path MD5"
+
+
+
+###where autorecovered word/excel/notepad++/npp files are stored:
+%userprofile%\AppData\Roaming\Microsoft\Word
+%userprofile%\AppData\Local\Microsoft\Office\UnsavedFiles
+%userprofile%\AppData\Roaming\Microsoft\Excel
+%AppData%\Notepad++\backup
+
+manually delete clear erase cluster configuration:
+Clear-ClusterNode -Name <NodeName> -Force
+
+WSFC cluster backup hive file:
+%SystemRoot%\Cluster\CAUBackup
+
+
+Firewall rules in the registry:
+HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Services\SharedAccess\Defaults\FirewallPolicy\FirewallRules
+
+
+shutdown /m \\DB4 /s /f /t 0 /d p:1:4
+
+
+
+wmic diskdrive get index
+wmic volume where "DriveType='3'" get DriveLetter
+
+
+### SAN LUN gets offline Disk reboot restart
+```
+On one of the servers running Windows Server 2016, an additional disk (not a system one) connected as a SAN LUN over FC gets offline after each restart of the server.
+solution:
+1. in elevated cmd type "DISKPART"
+2. type "san". The result should be "SAN Policy : Offline Shared"
+3. type "san policy=OnlineAll"
+4. Verify the current policy by typing "san" again
+
+#Run all in a one place:
+
+diskpart
+san
+san policy=OnlineAll
+san
+``` SAN LUN gets offline Disk reboot restart
+
+How can I create a persistent system variable in windows like %LSHOST%?
+setx LSHOST localhost /m
+
+
+
+path for networks in registry to change profile from/to public/private:
+HKEY_LOCAL_MACHINE\SOFTWARE\Microsoft\Windows NT\CurrentVersion\NetworkList\Profiles
+Double-click on the Category DWORD and change the value data from 0 (Public) to 1 (Private)
+Close the Registry Editor and reboot your PC
+get network uid in cmd:
+wmic nic where "NetConnectionID like '%Wi-Fi%'" get GUID
+
+#verbose
+wmic /OUTPUT:CLIPBOARD nicconfig get DefaultIPGateway,Description,DHCPServer,DNSDomainSuffixSearchOrder,DNSServerSearchOrder,InterfaceIndex,IPAddress,IPSubnet,MACAddress
+#informative filtered
+wmic /OUTPUT:CLIPBOARD nicconfig where "IPEnabled = 'TRUE'" get Caption,MACAddress,IPAddress,IPSubnet,DefaultIPGateway,InterfaceIndex,DNSDomainSuffixSearchOrder
+#route modify
+wmic /OUTPUT:CLIPBOARD nicconfig get IPAddress,IPSubnet,Caption,MACAddress,DefaultIPGateway,InterfaceIndex,DNSDomainSuffixSearchOrder
+Sample output:
+"C:\%userprofile%\Dropbox\learning\windows or office\nicconfig.txt"
+"C:\%userprofile%\Dropbox\learning\windows or office\nic.txt"
+
+
+
+
+rem get sessions and their statuses using cmd:
+query user
+
+
+### for loop to get different columns of a command output:
+```
+for /f "skip=1 tokens=1,3" %%a in ('query user testra') do (
+ echo sessionName is %%a, sessionID is %%b
+ 
+)
+
+# log off a session with a specific name if it is in disconnected state:
+@echo off
+rem Get the session ID of the user
+for /f "skip=1 tokens=3" %%a in ('query user testra') do (
+echo sessionName is %%a
+if %%a==Disc (
+echo if is executed
+logoff %sessionID%
+) 
+)
+
+
+```
+
+
+Windows default start menu shortcuts:
+C:\Users\Ali\AppData\Roaming\Microsoft\Windows\Start Menu\Programs\Windows PowerShell
+
+
+
+###standby sleep stand by
+```
+rundll32.exe powrprof.dll,SetSuspendState 0,1,0
+rem sysinternals:
+psshutdown.exe -d -t 0 -accepteula
+```
+
+
+### powercfg
+```
+powercfg /batteryreport
+powercfg /?
+powercfg /? DEVICEDISABLEWAKE
+POWERCFG /DEVICEQUERY wake_armed	# list devices that can wake the computer
+POWERCFG /DEVICEQUERY   {
+wake_from_S1_supported  	|  Return all devices that support waking the system from a light sleep state.
+wake_from_S2_supported  	|  Return all devices that support waking the system from a deeper sleep state.
+wake_from_S3_supported  	|  Return all devices that support waking the system from the deepest sleep state.
+wake_from_any           	|  Return all devices that support waking the system from any sleep state.
+S1_supported            	|  List devices supporting light sleep.
+S2_supported            	|  List devices supporting deeper sleep.
+S3_supported            	|  List devices supporting deepest sleep.
+S4_supported            	|  List devices supporting hibernation.
+wake_programmable       	|  List devices that are user-configurable to wake the system from a sleep state.
+wake_armed              	|  List devices that are currently configured to wake the system from any sleep state.
+all_devices             	|  Return all devices present in the system.
+						}
+#Ex:
+POWERCFG /DEVICEQUERY wake_armed
+
+powercfg /? DEVICEDISABLEWAKE
+
+#ex:
+powercfg /DEVICEDISABLEWAKE "Thunderbolt(TM) Controller - 9A1F"
+powercfg /DEVICEDISABLEWAKE "Thunderbolt(TM) Controller - 9A21"
+powercfg /DEVICEDISABLEWAKE "HID-compliant mouse (001)"
+powercfg /DEVICEDISABLEWAKE "HID Keyboard Device"
+powercfg /DEVICEDISABLEWAKE "HID Keyboard Device (002)"
+powercfg /DEVICEDISABLEWAKE "HID Keyboard Device (003)"
+powercfg /DEVICEDISABLEWAKE "Logicool HID-compliant Cordless Mouse (001)"
+powercfg /DEVICEDISABLEWAKE "Logitech HID-Compliant Keyboard (002)"
+
+
+```
+
+
+### path
+```
+add path to the user environment variables:
+setx PATH "%PATH%;C:\xampp\php"
+add path to the system environment variables:
+setx /M PATH "%PATH%;C:\xampp\php"
+
+# Execution Example:
+The value was truncated and not saved
+C:\Windows\System32>setx /M PATH "C:\Program Files (x86)\Common Files\Oracle\Java\javapath;C:\Program Files (x86)\VMware\VMware Workstation\bin\;C:\Program Files (x86)\Microsoft SDKs\Azure\CLI2\wbin;C:\Program Files\Microsoft MPI\Bin\;C:\Program Files\Common Files\Microsoft Shared\Microsoft Online Services;C:\Program Files (x86)\Common Files\Microsoft Shared\Microsoft Online Services;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem;C:\Windows\System32\WindowsPowerShell\v1.0\;C:\Windows\System32\OpenSSH\;C:\Program Files (x86)\Microsoft SQL Server\150\DTS\Binn\;C:\Program Files\Azure Data Studio\bin;C:\Program Files\dotnet\;C:\Program Files\Microsoft SQL Server\130\Tools\Binn\;C:\Program Files\Microsoft SQL Server\Client SDK\ODBC\170\Tools\Binn\;C:\Program Files (x86)\Microsoft SQL Server\110\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\120\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\130\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\140\DTS\Binn\;C:\Program Files (x86)\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\Tools\Binn\;C:\Program Files\Microsoft SQL Server\150\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\OpenSSH\;C:\Program Files (x86)\Microsoft SQL Server\160\DTS\Binn\;C:\Program Files\Calibre2\;C:\Program Files\GitHub CLI\;C:\Program Files\WireGuard\;C:\Program Files\NVIDIA Corporation\NVIDIA NvDLISR;C:\Program Files (x86)\Windows Kits\10\Windows Performance Toolkit\;C:\Program Files\Microsoft SQL Server\130\DTS\Binn\;C:\Program Files\Microsoft SQL Server\140\DTS\Binn\;C:\Program Files\Microsoft SQL Server\160\DTS\Binn\;C:\WINDOWS\system32;C:\WINDOWS;C:\WINDOWS\System32\Wbem;C:\WINDOWS\System32\OpenSSH\;C:\Program Files\PowerShell\7\;C:\Windows\System32\drivers\etc;C:\Program Files\Cloudflare\Cloudflare WARP\;C:\Program Files (x86)\cloudflared\;C:\Program Files (x86)\glab;C:\Program Files\Git\cmd;C:\Program Files (x86)\Bitvise SSH Client;C:\Users\Ali\AppData\Local\Programs\Python\Python310\Scripts\;C:\Users\Ali\AppData\Local\Programs\Python\Python310\;C:\Users\Ali\AppData\Local\Microsoft\WindowsApps;C:\Users\Ali\.dotnet\tools;C:\Program Files (x86)\Nmap;C:\Users\Ali\AppData\Local\Programs\Microsoft VS Code\bin;C:\Program Files\JetBrains\DataGrip 2023.3.1\bin;C:\Users\Ali\Dropbox\Path Creator\Shortcuts"
+
+WARNING: The data being saved is truncated to 1024 characters.
+
+SUCCESS: Specified value was saved.
+
+
+## useless path values
+%SYSTEMROOT%\System32\WindowsPowerShell\v1.0\
+C:\WINDOWS\System32\WindowsPowerShell\v1.0\
+## good path values
+
+```
+
+
+
+### WMI:
+```
+## reset repository:
+NET STOP Winmgmt -y
+winmgmt /resetrepository
+#restart
+winmgmt /verifyrepository
+
+```
+
+create user without home directory
+net user username password /add /homedir:none
+
+
+
+### windows ports:
+```
+ports:
+80, UDP: 1-65535
+All TCP ports 1-65535
+http 80
+https 443
+WSFC 3343
+RPC 135 & dynamic
+WMI: Port 135 for the RPC endpoint mapper, and a random high port for the actual communication
+WinRM: Port 5985 for HTTP, and port 5986 for HTTPS
+iSCSI Target Server: 3260 
+smb: 445
+WAC (Windows Admin Center) target server: 5985 (http), 5986 (https)
+```
+
+
+### (search/view) command line history
+```
+- write the beginning of the command, then press F8
+- use the pop-up opened by pressing F7
+- the following command
+doskey /history
+```
+
+wait for user interaction/inupt to close a command prompt/line cmd - press any key to continue
+set /p id="Press enter to exit . . ."
+
+when your shared clustered storage is unavailable, there can be some possible reasons for this problem:
+1. iSCSI initiator malfunctioned
+2. some setting on the Target Server has malfunctioned
+
+ 
+### Enable/Disable network adapter:
+```
+
+netsh interface set interface 'INTERFACE NAME' disable
+netsh interface set interface 'INTERFACE NAME' enable
+wmic path win32_networkadapter where index=1 call disable
+wmic path win32_networkadapter where index=1 call enable
+```
+
+
+
+
+Rename-Computer -NewName "JV-00$((Get-Random -Minimum 10 -Maximum 60).ToString("00"))"
+
+### PowerShell-Beautifier:
+```
+# Docs: https://github.com/DTW-DanWard/PowerShell-Beautifier
+
+Install-Module -Name PowerShell-Beautifier
+
+Import-Module PowerShell-Beautifier
+
+Edit-DTWBeautifyScript "C:\Temp\codes\ESXi-Customizer-PS-new-test.ps1" -IndentType Tabs
+```
+
+PowerShell Modules Default Paths:
+PS C:\> $env:PSModulePath -split ';'
+C:\Users\Ali\Documents\WindowsPowerShell\Modules
+C:\Program Files\WindowsPowerShell\Modules
+C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+D:\Program Files (x86)\Red Gate\SQL Change Automation PowerShell\Modules\
+C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\platform\PowerShell
+
+
+
+C:\Temp\codes\ESXi-Customizer-PS-new.ps1 -help
+
+Write-Host -F Green "`nAll done.`n"
+
+
+
+
+### PowerShell change/view execution policy 
+```
+Get-ExecutionPolicy -Scope Process
+
+change/view execution policy to allow script running, run your script, then set execution policy to protective mode again:
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Bypass
+
+C:\Temp\codes\ESXi-Customizer-PS-new.ps1 -pkgDir "C:\Temp\codes" -vft -load cpu-microcode -v8
+
+Set-ExecutionPolicy -Scope Process -ExecutionPolicy Undefined
+```
+
+
+
+### PowerShell network management
+```
+Get networks:
+Get-NetConnectionProfile
+Get-NetConnectionProfile -InterfaceIndex 24
+Sample output:
+##########################
+Name                     : taknet
+InterfaceAlias           : Wi-Fi
+InterfaceIndex           : 8
+NetworkCategory          : Private
+DomainAuthenticationKind : None
+IPv4Connectivity         : Internet
+IPv6Connectivity         : NoTraffic
+##########################
+Set-NetConnectionProfile -Name "Network-Name" -NetworkCategory Private
+Set-NetConnectionProfile -InterfaceIndex 11 -NetworkCategory "Private"
+
+This is also useful:
+set networkprofile to private via powershell:
+{
+Set-NetConnectionProfile -Name "Network-Name" -NetworkCategory Private
+to get network name:
+Get-NetConnectionProfile
+additional info:
+Get-NetAdapter -IncludeHidden 
+}
+Get-NetIPAddress
+Get-NetIPInterface
+
+# static ip configuration:
+Set-NetIPInterface -InterfaceAlias "Ethernet 2" -Dhcp Disabled
+New-NetIPAddress -InterfaceAlias "Ethernet 2" -IPAddress 192.168.1.100 -PrefixLength 24 -DefaultGateway 192.168.1.1
+```
+
+
+delete network profile:
+netsh wlan delete profile name="HomeNetwork"
+
+
+Clear-ClusterNode [-Name <NodeName>] -Force
+
+
+### PowerShell get powershell version
+```
+$PSVersionTable.PSVersion
+Get-Host | Select-Object Version
+$host.Version
+Get-ItemProperty -Path HKLM:\SOFTWARE\Microsoft\PowerShellCore\InstalledVersions\* -Name 'SemanticVersion'
+pwsh --version #(only works for PowerShell Core 6 or later)
+```
+
+
+
+
+
+Install locations by version:
+-Windows PowerShell 5.1: 
+$env:WINDIR\System32\WindowsPowerShell\v1.0
+-PowerShell 6.x: 
+$env:ProgramFiles\PowerShell\6
+-PowerShell 7: 
+$env:ProgramFiles\PowerShell\7
+
+
+### PowerShell Everything about WSL:
+```
+#ref:
+https://learn.microsoft.com/en-us/windows/wsl/install
+https://learn.microsoft.com/en-us/windows/wsl/basic-commands
+## Change WSL2 global configurations:
+https://learn.microsoft.com/en-us/windows/wsl/wsl-config
+## list of distros by json:
+https://raw.githubusercontent.com/microsoft/WSL/master/distributions/DistributionInfo.json
+## temp directories for installed ditros:
+file:///%userprofile%\AppData\Local\Packages
+search for .vhdx files containing linux data
+ex:
+CanonicalGroupLimited.Ubuntu20.04LTS_79rhkp1fndgsc
+
+
+
+
+
+1. Install WSL
+	a. (Recommended) use Microsoft Store
+	b. wsl --install. It can simply replace steps 1-2 of c. It will also download and install the default distro Ubuntu
+		if you want to skip that, run wsl --install --no-distribution
+	
+	c.
+		1. dism.exe /online /enable-feature /featurename:Microsoft-Windows-Subsystem-Linux /all /norestart
+		
+		2. dism.exe /online /enable-feature /featurename:VirtualMachinePlatform /all /norestart
+
+2. (optional) wsl update package:
+https://wslstorestorage.blob.core.windows.net/wslblob/wsl_update_x64.msi
+wsl --update
+
+3. 
+	-. see WSL version
+	wsl -v
+	-. see WSL status
+	wsl --status
+	-. get wsl version for every distro
+	wsl -l -v
+4. 
+	-. see list of valid distributions
+	wsl --list --online
+	-. see list of already installed distros
+	wsl --list --all
+5. Install distributions:
+	-. Online:
+	wsl --install -d <distro name>
+	#ex:
+	wsl --install -d Ubuntu-20.04
+	-. Offline
+	
+-- some other wsl commands:
+import wsl distro from vhdx file in place:
+
+run a specific wsl distribution:
+wsl -d <DistributionName>
+
+-- set the default Linux distribution
+wsl -s <DistributionName>
+
+-- Set default WSL version
+wsl --set-default-version 2
+
+-- run specific distro and user
+wsl --distribution <Distribution Name> --user <User Name>
+
+-- set a specific user (here root) as the default user for a specific distribution:
+in sudo nano /etc/wsl.conf
+[user]
+default=root
+
+--
+wsl --version	
+
+-- Change the default user for a distribution
+<DistributionName> config --default-user <Username>
+
+--
+wsl --terminate <Distribution Name>
+
+-- shutdown all
+wsl --shutdown
+
+
+### create wslconfig file (.wslconfig) with its configurations
+
+1. create the following empty file if not exists:
+if (-Not (Test-Path -Path (Join-Path -Path $env:USERPROFILE -ChildPath ".wslconfig"))) { New-Item -Path $env:USERPROFILE -Name ".wslconfig" -ItemType File } else { Write-Output "The file '.wslconfig' already exists." }
+# The main command is: New-Item -Path $env:USERPROFILE -Name .wslconfig -ItemType File
+
+2. Add the following lines to limit resources consumed by all WSL2 VMs:
+[wsl2]
+memory=2GB # Limits VM memory in WSL 2 to 4 GB
+processors=2 # Makes the WSL 2 VM use two virtual processors
+
+## Add the following lines to change the default DNS for a specific WSL VM (wsldns):
+[wsl2]
+nameserver = 8.8.8.8, 8.8.4.4
+
+## Change specific VM Configuration
+1. To use the wsl.conf file, you need to create or edit it in the /etc directory of the distribution
+vi /etc/wsl.conf
+2. add the following lines to the file:
+[network]
+generateResolvConf = false
+3. create or edit the /etc/resolv.conf
+nameserver 8.8.8.8
+nameserver 8.8.4.4
+
+## WSL export and import, erase & remove
+first make sure that the WSL distribution is not running
+1.
+wsl --export Ubuntu-20.04 ubuntubackup.tar
+#Ex
+wsl --export OracleLinux_9_1 "D:\Stateless\Applications Linux\WSL\Backups\24.02.24_OracleLinux_9_1.tar"
+2.
+wsl --import Ubuntu-Clone C:\Users\MyPC\AppData\Local\Packages\Ubuntu-Clone C:\Users\MyPC\AppData\Local\Packages\Ubuntu\LocalState\ext4.vhdx --version 2
+#Ex:
+wsl --import OracleLinux9 "D:\WSL\RHEL\OracleLinux9" "D:\Stateless\vm raws\Backup\WSL & WSA\WSL Export\24.02.24_OracleLinux_9_1.tar"
+wsl --import-in-place <new_distro_name> <path_to_vhdx>
+wsl --unregister Ubuntu-20.04
+
+## find host ip that wsl2 can see
+cat /etc/resolv.conf | grep nameserver | awk '{print $2}'
+
+## link WSL kernel headers to standard linux-like kernel headers
+sudo ln -s /usr/src/linux-headers-6.6.87.1-msft /usr/src/linux-headers-6.6.87.1-generic
+# Create symlinks to existing headers deepseek
+sudo ln -s /usr/include/linux /lib/modules/$(uname -r)/build
+sudo ln -s /usr/include/asm-generic /lib/modules/$(uname -r)/build/asm
+
+##----------------------------------------------------------
+# Install build dependencies
+sudo apt update
+sudo apt install git build-essential flex bison libssl-dev libelf-dev
+
+# Clone Microsoft's WSL kernel source
+git clone https://github.com/microsoft/WSL2-Linux-Kernel
+cd WSL2-Linux-Kernel
+
+# Checkout your exact kernel version
+KERNEL_VERSION=$(uname -r | cut -d'-' -f1)  # Extracts "6.6.87.1"
+git checkout linux-msft-wsl-$KERNEL_VERSION
+
+# Prepare and install headers
+make prepare
+sudo make headers_install
+##----------------------------------------------------------
+# Check if essential headers exist
+ls -l /lib/modules/$(uname -r)/build/include/linux/kernel.h
+``` PowerShell Everything about WSL
+
+
+### PowerShell Windows Admin Center WAC
+```
+## import or export your connections with tags
+# Load the module
+Import-Module "$env:ProgramFiles\windows admin center\PowerShell\Modules\ConnectionTools"
+# Available cmdlets: Export-Connection, Import-Connection
+
+# Export connections (including tags) to a .csv file
+Export-Connection "https://wac.contoso.com" -fileName "WAC-connections.csv"
+# Import connections (including tags) from a .csv file
+Import-Connection "https://wac.contoso.com" -fileName "WAC-connections.csv"
+# Import connections (including tags) from .csv files, and remove any connections that are not explicitly in the imported file using the -prune switch parameter 
+Import-Connection "https://wac.contoso.com" -fileName "WAC-connections.csv" -prune
+
+## Import RDCman connections
+https://learn.microsoft.com/en-us/windows-server/manage/windows-admin-center/use/get-started?tabs=add-one
+``` Windows Admin Center WAC
+
+
+### PowerShell Install powershell module offline:
+```
+1. 
+Install-Module -Name PowerShellGet -RequiredVersion 2.2.5 -Force	#Install powershell module offline
+
+2.
+Install-Module -Name PackageManagement
+Install-Module -Name PSWindowsUpdate
+
+3.
+Install-PackageProvider -Name NuGet –MinimumVersion 2.8.5.201 -Force	#Install powershell module offline
+
+-. Create directory
+
+New-Item -Path C:PowerShellModules -ItemType Directory
+
+4.
+Save-Module -Name PSReadLine -Path C:PowerShellModules
+
+5. Check powershell version for the target server. It must be 5.0 or higher
+$PSVersionTable.PSVersion
+
+6. 
+If your version is below 5.0, follow the instructions in the [official PowerShell GitHub repository](https://github.com/PowerShell/PowerShell)
+
+7. Installing the PowerShell Module on the Offline Server
+Copy the folder containing the downloaded module
+
+8. Do one of the following 2 approaches. Approach a is better.
+	a - run the following in powershell to get the paths from which powershell modules are loaded
+		if the directory does not exist create it.
+		$env:PSModulePath -split ';'
+		#Ex:
+		%USERPROFILE%\Documents\WindowsPowerShell\Modules
+		C:\Program Files\WindowsPowerShell\Modules
+		C:\WINDOWS\system32\WindowsPowerShell\v1.0\Modules
+		D:\Program Files (x86)\Red Gate\SQL Change Automation PowerShell\Modules\
+		C:\Program Files (x86)\Microsoft SQL Server\150\Tools\PowerShell\Modules\
+		C:\Program Files (x86)\Google\Cloud SDK\google-cloud-sdk\platform\PowerShell
+		copy the module directory to one of the desired paths above. done. The module will now work
+	b - open a PowerShell terminal with administrator privileges and execute the following command
+		Install-Module -Name PSReadLine -Repository “C:PowerShellModulesPSReadLine”
+
+9. To verify that the installation was successful, run the following command
+Get-Module -ListAvailable -Name PSReadLine
+	you can also test-run the installed module
+	
+``` Install powershell module offline
+
+### PowerShell Windows Update (install, manage, list)
+```
+## Install PSWindowsUpdate Module:
+``
+clear
+Get-ChildItem -Name "$HOME\Documents\WindowsPowerShell\Modules"
+
+& "\\tsclient\Cloud Storage\PSWindowsUpdate.exe"
+# remove-item "\\tsclient\Cloud Storage\PSWindowsUpdate.exe"
+Get-ClusterGroup -Name "SQL Server*" | Select-Object OwnerNode
+hostname
+
+# Get-WindowsUpdate -AcceptAll -Install -AutoReboot
+``
+
+## PSWindowsUpdate Cmdlets:
+PS C:\> Get-Command -Module PSWindowsUpdate
+
+CommandType     Name                                               Version    Source
+-----------     ----                                               -------    ------
+Alias           Clear-WUJob                                        2.2.1.4    PSWindowsUpdate
+Alias           Download-WindowsUpdate                             2.2.1.4    PSWindowsUpdate
+Alias           Get-WUInstall                                      2.2.1.4    PSWindowsUpdate
+Alias           Get-WUList                                         2.2.1.4    PSWindowsUpdate
+Alias           Hide-WindowsUpdate                                 2.2.1.4    PSWindowsUpdate
+Alias           Install-WindowsUpdate                              2.2.1.4    PSWindowsUpdate
+Alias           Show-WindowsUpdate                                 2.2.1.4    PSWindowsUpdate
+Alias           UnHide-WindowsUpdate                               2.2.1.4    PSWindowsUpdate
+Alias           Uninstall-WindowsUpdate                            2.2.1.4    PSWindowsUpdate
+Cmdlet          Add-WUServiceManager                               2.2.1.4    PSWindowsUpdate
+Cmdlet          Enable-WURemoting                                  2.2.1.4    PSWindowsUpdate
+Cmdlet          "Get-WindowsUpdate"                                2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUApiVersion                                   2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUHistory                                      2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUInstallerStatus                              2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUJob                                          2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WULastResults                                  2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUOfflineMSU                                   2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WURebootStatus                                 2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUServiceManager                               2.2.1.4    PSWindowsUpdate
+Cmdlet          Get-WUSettings                                     2.2.1.4    PSWindowsUpdate
+Cmdlet          Invoke-WUJob                                       2.2.1.4    PSWindowsUpdate
+Cmdlet          Remove-WindowsUpdate                               2.2.1.4    PSWindowsUpdate
+Cmdlet          Remove-WUServiceManager                            2.2.1.4    PSWindowsUpdate
+Cmdlet          Reset-WUComponents                                 2.2.1.4    PSWindowsUpdate
+Cmdlet          Set-PSWUSettings                                   2.2.1.4    PSWindowsUpdate
+Cmdlet          Set-WUSettings                                     2.2.1.4    PSWindowsUpdate
+Cmdlet          Update-WUModule                                    2.2.1.4    PSWindowsUpdate
+``` PowerShell Windows Update (install, manage, list)
+
+
+
+
+
+### PowerShell File operations (copy, move, rename, delete, dir)
+```
+Get-Location
+$PWD
+
+Set-Location C:\Users\Username\Documents
+
+Get-ChildItem C:\Windows\System32
+
+Copy-Item C:\Users\Username\Documents\file.txt D:\Backup\
+
+Move-Item -Path C:\Backup -Destination E:\Temp -Recurse
+
+Rename-Item C:\Users\Username\Documents\oldfile.txt newfile.txt
+
+New-Item C:\Users\Username\Documents\NewFolder -ItemType Directory
+
+Remove-Item C:\Temp\test.txt
+
+Remove-Item C:\Temp\Backup -Recurse -Force
+
+Remove-Item C:\Temp\*.log
+
+Resolve-Path ~
+
+Get-Help Remove-Item
+``` File operations (copy, move, rename, delete)
+
+
+
+
+
+### PowerShell directory/file path
+```
+C:PowerShellModules
+means the directory/file named PowerShellModules relative to the current path in the C: drive
+
+#Ex:
+Get-ChildItem "D:Programs\SQL Server"
+Get-ChildItem D:Programs
+
+``` directory/file path
+
+
+
+### PowerShell failover cluster wsfc
+```
+ WARNING: If you are running Windows PowerShell remotely, note that some failover clustering cmdlets do not work remotely. When possible, run the cmdlet
+
+locally and specify a remote computer as the target. To run the cmdlet remotely, try using the Credential Security Service Provider (CredSSP). All add
+
+itional errors or warnings from this cmdlet might be caused by running it remotely.
+                                                                                                                                                                        
+ Id CommandLine                                                                                                                                                                              
+
+ -- -----------                                                                                                                                                                              
+
+  1 Get-Cluster                                                                                                                                                                              
+  2 Get-ClusterAvailableDisk                                                                                                                                                                 
+  3 Get-ClusterGroup                                                                                                                                                                         
+  4 Get-ClusterGroupSet                                                                                                                                                                      
+  5 Get-ClusterHCSVM                                                                                                                                                                         
+  6 Get-ClusterNetwork                                                                                                                                                                       
+  7 Get-ClusterNetworkInterface                                                                                                                                                              
+  8 Get-ClusterNode                                                                                                                                                                          
+  9 Get-ClusterNodeSupportedVersion                                                                                                                                                          
+ 10 Get-ClusterOwnerNode                                                                                                                                                                     
+ 11 Get-ClusterParameter                                                                                                                                                                     
+ 12 Get-ClusterQuorum                                                                                                                                                                        
+ 13 Get-ClusterResource                                                                                                                                                                      
+ 14 Get-ClusterResourceDependency                                                                                                                                                            
+ 15 Get-ClusterResourceType                                                                                                                                                                  
+ 16 Get-ClusterResourceType -InputObject (Storage Replica)                                                                                                                                   
+ 17 Get-ClusterResourceType -Name (Storage Replica)                                                                                                                                          
+ 18 Get-ClusterResourceType -Name (IP Address)                                                                                                                                               
+ 19 Get-ClusterResourceType -InputObject (IP Address)                                                                                                                                        
+ 20 Get-ClusterSet                                                                                                                                                                           
+ 21 Get-ClusterSetAvailabilitySet                                                                                                                                                            
+ 22 Get-ClusterSetMember                                                                                                                                                                     
+ 23 Get-ClusterSetNode                                                                                                                                                                       
+ 24 Get-ClusterSharedVolume                                                                                                                                                                  
+ 25 Get-ClusterSharedVolumeState                                                                                                                                                             
+ 26 Get-ClusterStorageNode                                                                                                                                                                   
+ 27 Get-ClusterStorageSpacesDirect                                                                                                                                                           
+ 28 Get-ClusterVMMonitoredItem
+
+
+
+
+Get-Cluster
+Name    
+----    
+TSFDBCLU
+
+
+   
+Get-ClusterAvailableDisk                  
+ Cluster    : FMOMSPFDBCLU
+Id         : 511b0d2a-7f63-458f-bea7-45f744450c0e
+Name       : Cluster Disk 1
+Number     : 3
+Size       : 4294967296
+Partitions : {}
+
+
+Get-ClusterGroup   
+ Name                     OwnerNode  State  
+----                     ---------  -----  
+Available Storage        FMOMSPFFC2 Offline
+Cluster Group            FMOMSPFFC1 Online
+DTC_Shard                FMOMSPFFC1 Online
+FMOMSPFAG                FMOMSPFFC1 Online
+SQL Server (MSSQLSERVER) FMOMSPFFC1 Online
+
+(Get-ClusterGroup -Name "Home_AG").OwnerNode.Name
+AlwaysOnNode1
+Get-ClusterGroup | Where-Object { $_.Name -like "*MSSQLSERVER*" }
+
+
+
+Get-ClusterGroupSet
+No Result
+
+
+Get-ClusterHCSVM
+Error
+
+   
+Get-ClusterNetwork 
+ Name              State Metric             Role
+----              ----- ------             ----
+Cluster Network 1    Up  70240 ClusterAndClient
+ 
+
+
+Get-ClusterNetworkInterface
+ Name              Node       Network           State
+----              ----       -------           -----
+FMOMSPFAG - V097  FMOMSPFAG  Cluster Network 1    Up
+FMOMSPFFC1 - V097 FMOMSPFFC1 Cluster Network 1    Up
+FMOMSPFFC2 - V097 FMOMSPFFC2 Cluster Network 1    Up
+
+
+Get-ClusterNode
+ Name       State Type
+----       ----- ----
+FMOMSPFAG  Up    Node
+FMOMSPFFC1 Up    Node
+FMOMSPFFC2 Up    Node
+
+    
+Get-ClusterNodeSupportedVersion   
+ ClusterFunctionalLevel ClusterUpgradeVersion
+---------------------- ---------------------
+                   10                     3
+
+
+
+Get-ClusterOwnerNode
+No Result
+
+                      
+Get-ClusterParameter                      
+Error
+
+
+Get-ClusterQuorum    
+ Cluster              QuorumResource      
+ -------              --------------      
+FMOMSPFDBCLU         File Share Witness
+
+
+Get-ClusterResource   
+ Name   						State  				OwnerGroup          	     ResourceType
+ ----   						-----  				----------          	     ------------
+AssetModule_S   				Online 			SQL Server (MSSQLSERVER) 		Physical Disk                      
+Backup 							Online 			SQL Server (MSSQLSERVER) 		Physical Disk                      
+Cluster IP Address      		Online 			Cluster Group            		IP Address  
+Cluster Name        			Online 			Cluster Group            		Network Name
+Data   							Online 			SQL Server (MSSQLSERVER) 		Physical Disk                      
+DTC_Shard           			Online 			DTC_Shard                		Network Name
+File Server (\FMOMSPFSQL)   	Online 			SQL Server (MSSQLSERVER) 		File Server 
+File Share Witness          	Online 			Cluster Group            		File Share Witness                 
+File Share Witness (2)      	Online 			Cluster Group            		File Share Witness                 
+FMOMSPFAG                   	Online 			FMOMSPFAG                		SQL Server Availability Group      
+FMOMSPFAG_172.23.97.26      	Online 			FMOMSPFAG                		IP Address  
+FMOMSPFAG_FMOMSPFLST        	Online 			FMOMSPFAG                		Network Name
+IP Address 172.23.97.25     	Online 			DTC_Shard                		IP Address  
+Log    							Online 			SQL Server (MSSQLSERVER) 		Physical Disk                      
+MSDTC  							Online 			DTC_Shard                		Physical Disk                      
+MSDTC-DTC_Shard             	Online 			DTC_Shard                		Distributed Transaction Coordinator
+PortfolioArchive_N          	Online 			SQL Server (MSSQLSERVER) 		Physical Disk                      
+SQL IP Address 1 (FMOMSPFSQL) 	Online 			SQL Server (MSSQLSERVER) 		IP Address  
+SQL Network Name (FMOMSPFSQL) 	Online 			SQL Server (MSSQLSERVER) 		Network Name
+SQL Server                    	Online 			SQL Server (MSSQLSERVER) 		SQL Server  
+SQL Server Agent              	Online 			SQL Server (MSSQLSERVER) 		SQL Server Agent                   
+SQL Server CEIP (MSSQLSERVER) 	Online 			SQL Server (MSSQLSERVER) 		Generic Service                    
+Temp   							Online 			SQL Server (MSSQLSERVER) 		Physical Disk         
+  
+Get-ClusterResource | Where-Object { $_.Name -like "*SQL Server Availability Group*" }
+
+  
+
+Get-ClusterResourceDependency
+Error
+
+             
+Get-ClusterResourceType
+ Name             DisplayName             
+----             -----------             
+Cloud Witness    Cloud Witness           
+DFS Replicated Folder                   DFS Replicated Folder   
+DHCP Service     DHCP Service            
+Disjoint IPv4 Address                   Disjoint IPv4 Address   
+Disjoint IPv6 Address                   Disjoint IPv6 Address   
+Distributed File System                 Distributed File System 
+Distributed Network Name                Distributed Network Name
+Distributed Transaction Coordinator     Distributed Transaction Coordinator            
+File Server      File Server             
+File Share Witness                      File Share Quorum Witness                      
+Generic Application                     Generic Application     
+Generic Script   Generic Script          
+Generic Service  Generic Service         
+Health Service   Health Service          
+IP Address       IP Address              
+IPv6 Address     IPv6 Address            
+IPv6 Tunnel Address                     IPv6 Tunnel Address     
+iSCSI Target Server                     iSCSI Target Server     
+Microsoft iSNS   iSNS Cluster Resource   
+MSMQ             (Resource Type Unavailable)                    
+MSMQTriggers     (Resource Type Unavailable)                    
+Nat              Network Address Translator                     
+Network File System                     Network File System     
+Network Name     Network Name            
+Physical Disk    Physical Disk           
+Provider Address Hyper-V Network Virtualization Provider Address
+Scale Out File Server                   Scale Out File Server   
+SDDC Management  SDDC Management         
+SQL Server       SQL Server              
+SQL Server Agent SQL Server Agent        
+SQL Server Availability Group           SQL Server Availability Group                  
+SQL Server FILESTREAM Share             SQL Server FILESTREAM Share                    
+Storage Pool     Storage Pool            
+Storage QoS Policy Manager              Storage QoS Policy Manager                     
+Storage Replica  Storage Replica         
+Task Scheduler   Task Scheduler          
+Virtual Machine  Virtual Machine         
+Virtual Machine Cluster WMI             Virtual Machine Cluster WMI Provider           
+Virtual Machine Configuration           Virtual Machine Configuration                  
+Virtual Machine Replication Broker      Virtual Machine Replication Broker             
+Virtual Machine Replication Coordinator Virtual Machine Replication Coordinator        
+WINS Service     WINS Service       
+
+
+Get-ClusterResourceType -Name (Storage Replica)
+Get-ClusterResourceType -Name (IP Address)
+
+
+Get-ClusterSet     
+No Result
+
+
+Get-ClusterSetAvailabilitySet
+No Result
+
+
+Get-ClusterSetMember
+
+
+Get-ClusterSetNode   
+
+
+Get-ClusterSharedVolume       
+
+
+Get-ClusterSharedVolumeState   
+
+
+Get-ClusterStorageNode   
+
+
+Get-ClusterStorageSpacesDirect 
+CacheMetadataReserveBytes : 34359738368
+CacheModeHDD              : ReadWrite
+CacheModeSSD              : WriteOnly
+CachePageSizeKBytes       : 16
+CacheState                : Enabled
+Name                      : FMOMSPFDBCLU
+ScmUse                    : Cache
+State                     : Disabled
+
+
+Get-ClusterVMMonitoredItem   
+
+
+
+``` failover cluster wsfc
+
+Get-History 
+
+### PowerShell execute a powershell command on a remote computer (same domain)
+```
+## Check if PSRemoting is enabled:
+Test-WSMan -ComputerName localhost
+#output if it is enabled:
+wsmid           : http://schemas.dmtf.org/wbem/wsman/identity/1/wsmanidentity.xsd
+ProtocolVersion : http://schemas.dmtf.org/wbem/wsman/1/wsman.xsd
+ProductVendor   : Microsoft Corporation
+ProductVersion  : OS: 10.0.19042 SP: 0.0 Stack: 3.0
+#output if it is disabled:
+Test-WSMan : The WinRM client cannot process the request. It cannot determine the content type of the HTTP response from the destination computer. The content type is absent or invalid.
+
+1. enable PowerShell Remoting on the remote computer
+# Check 
+Enable-PSRemoting -Force
+The -Force parameter will suppress any confirmation prompts.
+2. 
+Invoke-Command -ComputerName RemotePC -ScriptBlock {Get-Process} -Credential RemoteUser
+
+#disable PSRemoting:
+PS C:\WINDOWS\system32>>> Disable-PSRemoting -Force
+WARNING: Disabling the session configurations does not undo all the changes made by the Enable-PSRemoting or Enable-PSSessionConfigura
+tion cmdlet. You might have to manually undo the changes by following these steps:
+    1. Stop and disable the WinRM service.
+    2. Delete the listener that accepts requests on any IP address.
+    3. Disable the firewall exceptions for WS-Management communications.
+    4. Restore the value of the LocalAccountTokenFilterPolicy to 0, which restricts remote access to members of the Administrators gro
+up on the computer.
+``` execute a powershell command on a remote computer (same domain)
+
+
+# add windows defender antivirus exclude exclusion/exception for a file/folder with cmd or powershell
+Add-MpPreference -ExclusionPath "C:\Temp"
+Add-MpPreference -ExclusionPath "C:\*.txt"
+powershell -Command "Add-MpPreference -ExclusionPath 'C:\Temp'"
+powershell -Command "Add-MpPreference -ExclusionPath 'C:\*.txt'"
+#Ex:
+powershell -Command "Add-MpPreference -ExclusionPath 'D:\Stateless\Applications\Microsoft\SQL Server\Red.Gate.SQL.Toolbelt.3.2.3.2826\Keygen'"
+powershell -Command "Add-MpPreference -ExclusionPath 'D:\Stateless\Applications\Microsoft\SQL Server\Red.Gate.SQL.Toolbelt.3.2.3.2826\Keygen\Prompt.exe'"
+
+
+### request for elevation command inside a batch file
+```
+## 1. method 1:
+::::::::::::::::::::::::::::::::::::::::::::
+:: Elevate.cmd - Version 4
+:: Automatically check & get admin rights
+:: see "https://stackoverflow.com/a/12264592/1016343" for description
+::::::::::::::::::::::::::::::::::::::::::::
+ @echo off
+ CLS
+ ECHO.
+ ECHO =============================
+ ECHO Running Admin shell
+ ECHO =============================
+
+:init
+ setlocal DisableDelayedExpansion
+ set cmdInvoke=1
+ set winSysFolder=System32
+ set "batchPath=%~dpnx0"
+ rem this works also from cmd shell, other than %~0
+ for %%k in (%0) do set batchName=%%~nk
+ set "vbsGetPrivileges=%temp%\OEgetPriv_%batchName%.vbs"
+ setlocal EnableDelayedExpansion
+
+:checkPrivileges
+  NET FILE 1>NUL 2>NUL
+  if '%errorlevel%' == '0' ( goto gotPrivileges ) else ( goto getPrivileges )
+
+:getPrivileges
+  if '%1'=='ELEV' (echo ELEV & shift /1 & goto gotPrivileges)
+  ECHO.
+  ECHO **************************************
+  ECHO Invoking UAC for Privilege Escalation
+  ECHO **************************************
+
+  ECHO Set UAC = CreateObject^("Shell.Application"^) > "%vbsGetPrivileges%"
+  ECHO args = "ELEV " >> "%vbsGetPrivileges%"
+  ECHO For Each strArg in WScript.Arguments >> "%vbsGetPrivileges%"
+  ECHO args = args ^& strArg ^& " "  >> "%vbsGetPrivileges%"
+  ECHO Next >> "%vbsGetPrivileges%"
+  
+  if '%cmdInvoke%'=='1' goto InvokeCmd 
+
+  ECHO UAC.ShellExecute "!batchPath!", args, "", "runas", 1 >> "%vbsGetPrivileges%"
+  goto ExecElevation
+
+:InvokeCmd
+  ECHO args = "/c """ + "!batchPath!" + """ " + args >> "%vbsGetPrivileges%"
+  ECHO UAC.ShellExecute "%SystemRoot%\%winSysFolder%\cmd.exe", args, "", "runas", 1 >> "%vbsGetPrivileges%"
+
+:ExecElevation
+ "%SystemRoot%\%winSysFolder%\WScript.exe" "%vbsGetPrivileges%" %*
+ exit /B
+
+:gotPrivileges
+ setlocal & cd /d %~dp0
+ if '%1'=='ELEV' (del "%vbsGetPrivileges%" 1>nul 2>nul  &  shift /1)
+
+ ::::::::::::::::::::::::::::
+ ::START
+ ::::::::::::::::::::::::::::
+ REM Run shell as admin (example) - put here code as you like
+ ECHO %batchName% Arguments: P1=%1 P2=%2 P3=%3 P4=%4 P5=%5 P6=%6 P7=%7 P8=%8 P9=%9
+ cmd /k
+ ## 2. other methods:
+# 
+runas /user:administrator "your-batch-file.bat"
+powershell -Command "Start-Process 'your-batch-file.bat' -Verb runas"
+
+# Elevate.exe (I'd be causious about this file)
+https://www.winability.com/download/Elevate.zip
+Elevate.exe your-batch-file.bat
+ 
+
+https://www.robvanderwoude.com/battech_elevation.php
+
+ 
+http://www.ntwind.com/software/utilities/hstart.html
+using hidden start with /uac switch:
+hstart /UAC "notepad.exe"
+run to get the swithes
+hstart /?
+
+# 
+https://github.com/PaoJiao/elevate
+Elevate.exe your-batch-file.bat
+
+```
+
+### PowerShell
+```
+Import-Module PowerShellGet
+
+Install-Module -Name Firewall-Manager
+
+Export-FirewallRules
+```
+
+### find apps through start menu search quickly swiftly by placing them under start menu all apps list:
+```
+1. place the shortcut in user workspace or global workspace here:
+%AppData%\Microsoft\Windows\Start Menu\Programs
+%SystemDrive%\ProgramData\Microsoft\Windows\Start Menu\Programs
+
+2. sign out and sign in again or restart.
+```
+
+
+view ip configuration for a specific interface only:
+ipconfig /all | findstr /c:"Ethernet"
+netsh interface ip show config name="Wi-Fi"
+
+
+### PowerShell copy ssh public key to a remote linux system
+```
+type $env:USERPROFILE\.ssh\id_rsa.pub | ssh {IP-ADDRESS-OR-FQDN} "cat >> .ssh/authorized_keys"
+```
+
+
+
+
+
+
+### PowerShell netstat
+```
+Get-NetTCPConnection
+Get-NetTCPConnection -State Listen
+Get-NetTCPConnection -State Listen | Sort-Object LocalPort | Format-Table Local*, State
+Get-Help Get-NetTCPConnection -Full
+``` PowerShell netstat
+
+TunSafe-1.4.exe
+
+
+
+display dns cache where matches "*Record Name*" or "*A (Host) Record*"
+ipconfig /displaydns | ?{$_ -like "*Record Name*" -or  $_ -like "*A (Host) Record*"}
+
+
+
+Default locations for Microsoft Windows SDK 7.1 development sdk
+c:\ProgramData\Microsoft\HelpLibrary\
+
+
+### cmd command prompt command-line
+persistent ping internet
+cmd /K "@echo off && color a && title PING google && cls && @echo on && ping -t google.com -4"
+
+command prompt intial startup directory
+%windir%\system32\cmd.exe /K "chcp 1256 && cls && cd %userprofile%\Desktop"
+
+RUNAS
+runas /netonly /user:mofid.dc\a.momen "C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Ssms.exe"
+cmd /C "@echo off && runas /netonly /user:mofid.dc\a.momen "C:\Program Files (x86)\Microsoft SQL Server Management Studio 19\Common7\IDE\Ssms.exe""
+### cmd command prompt command-line cmd command prompt command-line
+
+
+
+# photoshop add file format support (.ico and more)
+find required files in a path similar to the one below:
+D:\Stateless\Applications\Adobe\Photoshop\File Formats\Required\Plug-ins\File Formats
+copy the required files to a path similar to the one below
+D:\Stateless\Applications\Adobe\Adobe.Photoshop.2024.v25.4.0.319.x64.Portable\App\Photoshop\Required\Plug-ins\File Formats
+
+
+# vshadow & vssadmin
+vshadow -p -rw -script=c:\cmd\SETVAR1.cmd d:
+
+vshadow -el=<snapshot ID>,x:
+
+vshadow -bw=<shadow copy set id>
+
+#test:
+cls && vshadow -p -rw -norevert -wait -mask -nw -revertsig -ad -script=c:\cmd\SETVAR4.cmd d:
+vshadow  -t=c:\cmd\SETVAR4.xml -p -nw -ad -bex={2944261b-d397-4bb8-9a14-ad17c91ffd0c}
+vshadow -bw={ed9d7f87-daab-4ee0-9635-244092f0bd65}
+vshadow -el={3f404dad-8d57-47c6-a269-a48413216386},z:
+
+
+
+delete all the routes for a specific interface
+FOR /F "tokens=1,2,3,*" %a IN ('ROUTE PRINT ^| FINDSTR /R "^ *[0-9][0-9]*\."') DO @(
+IF "%d" EQU "<InterfaceIndex>" (
+ROUTE DELETE %a MASK %b %c
+)
+)
+
+
+
+### PowerShell SQL Server Info 
+```
+$inst = (Get-ItemProperty 'HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server').InstalledInstances
+foreach ($i in $inst) {
+$p = (Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\Instance Names\SQL").$i
+(Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\$p\Setup").Edition
+(Get-ItemProperty "HKLM:\SOFTWARE\Microsoft\Microsoft SQL Server\$p\Setup").PatchLevel
+}
+#Some other parameters:
+SQLDataRoot
+SQLPath
+SqlProgramDir
+FeatureList
+SQLBinRoot
+Collation
+``` PowerShell SQL Server Info 
+
+
+# create hard and soft symbolic links for windows using command-prompt
+mklink Link Target
+
+mklink /H "C:\Program Files\Program Files (x86)" "C:\Program Files (x86)"
+flags
+{
+/D: link to a directory
+/H: hard link
+/J: junction, used for search within a directory which has a link within another directory
+}
+mklink /J "%USERPROFILE%\Dropbox\learning\SQL SERVER\Scripts & Files\My Scripts\GitHub SQLServer" "%USERPROFILE%\Dropbox\learning\git\MyGitHubRepos\SQLServer"
+
+### Install Red-Gate RedGate SQLMonitor on Windows server
+```
+1.Install IIS with asp .Net
+2.
+```
+
+
+If BlueStacks will not start make sure Windows Sandbox feature is enabled
+
+
+## powershell remove header from command output
+(Get-Location).Path
+
+
+
+
+dotnet build commands:
+###
+dotnet restore --source "C:\LocalNuGetFeed"
+nuget sources Add -Name "LocalNuGetFeed" -Source "C:\LocalNuGetFeed"
+dotnet build
+###
+
+
+### PowerShell some package management commands
+```
+```
+
+
+# bind remote requests to an internal IP Address/Port (ip and port forwarding)
+netsh interface portproxy add v4tov4 listenport=9000 listenaddress=0.0.0.0 connectport=9000 connectaddress=<WSL distro internal IP address>
+
+
+
+### Install, check, and pull GIT
+```
+"\\fecm\Source\Git-2.46.1-64-bit.exe" /SP- /VERYSILENT /SUPPRESSMSGBOXES /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /FORCECLOSEAPPLICATIONS /RESTARTAPPLICATIONS /LOGCLOSEAPPLICATIONS
+"C:\Program Files\Git\cmd\git.exe" -v
+cd && cd \ && mkdir -p DBA_Git
+cd && cd C:\DBA_Git && "C:\Program Files\Git\cmd\git.exe" clone https://mo.abbaspour:glpat-iLr47YcoAoy7TxPsEnWU@git.mofid.dev/mo.abbaspour/database-servers-documentation.git 2>nul
+cd && cd C:\DBA_Git\database-servers-documentation && "C:\Program Files\Git\cmd\git" pull https://mo.abbaspour:glpat-iLr47YcoAoy7TxPsEnWU@git.mofid.dev/mo.abbaspour/database-servers-documentation.git
+``` Install, check, and pull GIT
+
+
+
+
+
+### PowerShell run script on multiple servers
+```
+Enable-PSRemoting -Force
+$servers = @('Server1', 'Server2', 'Server3') # Replace with your server names or IP addresses
+$sessions = New-PSSession -ComputerName $servers
+$scriptBlock = {
+    # Your PowerShell script here
+    Write-Output "Running script on $env:COMPUTERNAME"
+}
+Invoke-Command -Session $sessions -ScriptBlock $scriptBlock
+Remove-PSSession -Session $sessions
+#####################################
+$servers = @('Server1', 'Server2', 'Server3') # Replace with your server names or IP addresses
+$failedSessions = @()
+
+foreach ($server in $servers) {
+    try {
+        $session = New-PSSession -ComputerName $server -ErrorAction Stop
+        Invoke-Command -Session $session -ScriptBlock {
+            # Your PowerShell script here
+            Write-Output "Running script on $env:COMPUTERNAME"
+        }
+        Remove-PSSession -Session $session
+    } catch {
+        $failedSessions += [PSCustomObject]@{
+            Server = $server
+            ErrorMessage = $_.Exception.Message
+        }
+    }
+}
+
+if ($failedSessions.Count -gt 0) {
+    Write-Output "Some connections failed:"
+    $failedSessions | Format-Table -AutoSize
+} else {
+    Write-Output "All connections were successful."
+}
+############# Sample: #######################################
+$servers = @('172.23.148.2', '172.23.64.1') # Replace with your server names or IP addresses
+$failedSessions = @()
+
+foreach ($server in $servers) {
+    try {
+        $session = New-PSSession -ComputerName $server -ErrorAction Stop
+        Invoke-Command -Session $session -ScriptBlock {
+		################
+		Start-Process -FilePath "\\fecm\Source\Git-2.46.1-64-bit.exe" -ArgumentList "/SP-", "/VERYSILENT", "/SUPPRESSMSGBOXES", "/NOCANCEL", "/NORESTART", "/CLOSEAPPLICATIONS", "/FORCECLOSEAPPLICATIONS", "/RESTARTAPPLICATIONS", "/LOGCLOSEAPPLICATIONS" -NoNewWindow -Wait
+		"C:\Program Files\Git\cmd\git.exe" -v
+		cd \ && mkdir -p DBA_Git
+		cd C:\DBA_Git && "C:\Program Files\Git\cmd\git.exe" clone https://mo.abbaspour:glpat-iLr47YcoAoy7TxPsEnWU@git.mofid.dev/mo.abbaspour/database-servers-documentation.git 2>nul
+		cd C:\DBA_Git\database-servers-documentation && "C:\Program Files\Git\cmd\git" pull https://mo.abbaspour:glpat-iLr47YcoAoy7TxPsEnWU@git.mofid.dev/mo.abbaspour/database-servers-documentation.git
+        ################    
+			Write-Output "Running script on $env:COMPUTERNAME"
+        }
+        Remove-PSSession -Session $session
+    } catch {
+        $failedSessions += [PSCustomObject]@{
+            Server = $server
+            ErrorMessage = $_.Exception.Message
+        }
+    }
+}
+
+if ($failedSessions.Count -gt 0) {
+    Write-Output "Some connections failed:"
+    $failedSessions | Format-Table -AutoSize
+} else {
+    Write-Output "All connections were successful."
+}
+
+``` PowerShell run script on multiple servers
+
+
+sfc /scannow
+
+
+wmic useraccount where name='username' set PasswordExpires=False
+
+
+
+### 
+```
+```
+
+
+### PowerShell Session
+
+# $username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath "cmd.exe" -Credential $cred -ArgumentList "/k whoami"
+
+##$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList '-NoExit','-Command','(Get-ClusterGroup | Where-Object { $_.Name -like \"*SQL Server*\" }).OwnerNode.Name' 
+##
+##powershell "$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList '-Command', 'Enable-PSRemoting -Force -SkipNetworkProfileCheck; netstat -anob | findstr 5985;'"
+##
+##
+##$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'cmd.exe' -Credential $cred -ArgumentList '/c whoami'
+
+
+###
+
+Get-Process -Name Notepad | Format-List *
+Get-Process -Name Notepad | Format-Table *
+# List Properties and Methods:
+Get-Process | Get-Member
+# Get a specific property:
+Get-Process | Select-Object
+# Get properties of a hashtable
+$hashtable.GetEnumerator() | Format-Table -Property Name, Value
+
+
+curl -o c:\Source\SQLServer2022_CU18.exe "https://ffts.mofid.dc/public/file/bvs0oredde2ioogq0ve-lg/Cumulative%20Update%20Package%2018%20for%20SQL%20Server%202022%20-%20KB5050771.exe"
+
+
+###Activate WinRM/powershell remoting on Port 5895
+Enable-PSRemoting -Force
+winrm quickconfig -force
+winrm create winrm/config/Listener?Address=*+Transport=HTTP '@{Port="5895"; Enabled="true"}'
+New-NetFirewallRule -DisplayName "Allow WinRM on 5895" -Direction Inbound -Protocol TCP -LocalPort 5895 -Action Allow
+winrm enumerate winrm/config/listener
+Get-Service -Name WinRM
+# Login to PS Session
+Enter-PSSession -ComputerName <RemoteHost> -Port 5895
+
+
+ PS C:\Windows\system32> Remove-ClusterNode -CleanupDisks -Force
+Remove-ClusterNode : An error occurred evicting node 'SORBISDB1FC1'.
+   Eviction of this node is invalid at this time. Due to quorum requirements node eviction will result in cluster shutdown.
+If it is the last node in the cluster, destroy cluster command should be used
+At line:1 char:1
++ Remove-ClusterNode -CleanupDisks -Force
++ ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+   + CategoryInfo          : NotSpecified: (:) [Remove-ClusterNode], ClusterCmdletException
+   + FullyQualifiedErrorId : Remove-ClusterNode,Microsoft.FailoverClusters.PowerShell.RemoveClusterNodeCommand
+
+
+
+
+### Query windows firewall rules
+```
+clear
+Get-NetFirewallRule -Action Allow -Enabled True -Direction Inbound |
+ ForEach-Object {
+   $rule = $_
+   $addr = Get-NetFirewallAddressFilter -AssociatedNetFirewallRule $rule
+   $port = Get-NetFirewallPortFilter   -AssociatedNetFirewallRule $rule
+ 
+   if ($addr.RemoteAddress -eq 'Any' -and
+       $rule.Profile      -in @('Domain, Private, Public','Any') -and
+       $rule.DisplayName   -like "*SQL_Access*" -and        
+       $addr.LocalAddress  -eq 'Any' -and
+       $port.Protocol      -in ('Any','UDP','TCP') -and
+       $port.RemotePort    -eq 'Any' -and
+       $port.LocalPort     -eq 'Any'
+       
+       ) {
+     
+     $props = @{}
+ 
+     # 3. Merge properties from each object
+     foreach ($obj in @($rule, $addr, $port)) {
+         foreach ($p in $obj.PSObject.Properties) {
+             # If a property name already exists, you can choose to skip, overwrite,
+             # or rename. Here we overwrite with the last one encountered.
+             $props[$p.Name] = $p.Value
+         }
+     }
+ 
+     [PSCustomObject]$props
+  
+   }
+ } | Select-Object DisplayName, Enabled, Action, Direction, Profile, Priority, Protocol, LocalAddress, LocalPort, LocalIP, RemoteAddress, RemoteIP, RemotePort, PolicyStoreSourceType, Description `
+   | Format-Table
+ 
+ 
+# Get-NetFirewallRule -Action Block -Enabled True -Direction Inbound
+#
+# Get-NetFirewallProfile |
+#Format-Table Name, DefaultInboundAction, DefaultOutboundAction
+#
+#
+#
+#Get-NetFirewallRule  -Name '{5ca1e0fc-7246-4dab-baaf-27cb7628389f}' |  
+
+```
+
+### Create ANY to ANY Firewall rule:
+```
+
+New-NetFirewallRule `
+  -DisplayName "Allow ALL Inbound" `
+  -Direction Inbound `
+  -Action Allow `
+  -Protocol Any `
+  -LocalAddress Any `
+  -RemoteAddress Any `
+  -LocalPort Any `
+  -RemotePort Any `
+  -Enabled True
+
+```
+
+### Install package managers
+```
+# chocolatey
+Set-ExecutionPolicy Bypass -Scope Process -Force; [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072; iex ((New-Object System.Net.WebClient).DownloadString('https://community.chocolatey.org/install.ps1'))
+# winget
+Get-Process -Name WindowsPackageManagerServer.exe | Stop-Process -Force
+Add-AppxPackage -RegisterByFamilyName -MainPackage Microsoft.DesktopAppInstaller_8wekyb3d8bbwe
+
+``` Install package managers
+
+
+### ffmpeg
+```
+# This command slices from 1:00 to 2:30 without re-encoding, making it ultra-fast once installed.
+ffmpeg -i input.mp3 -ss 00:01:00 -to 00:02:30 -c copy output.mp3
+
+# Use ffprobe to auto-detect segment timings:
+ffprobe -show_entries format=duration \
+  -of default=noprint_wrappers=1:nokey=1 input.mp3
+``` ffmpeg
+
+
+
+### Disk SPD speedy
+```
+# Test with SQL Server page size and higher queue depth
+diskspd -t8 -o64 -b8k -r8k -w30 -d300 -Sh -D -L -c20G D:\testfile.dat
+# Test with 90% reads (common for OLTP)
+diskspd -t8 -o64 -b8k -r8k -w10 -d300 -Sh -D -L -c20G D:\testfile.dat
+# Test with 100% random writes
+diskspd -t8 -o64 -b8k -r8k -w100 -d300 -Sh -D -L -c20G D:\testfile.dat
+# Test with 100% random reads
+diskspd -t8 -o64 -b8k -r8k -w -d300 -Sh -D -L -c20G D:\testfile.dat
+
+diskspd -t4 -o32 -b64k -r64k -w30 -d600 -Sh -D -L -c5G T:\DiskSpd\DiskSpd\amd64\IO01.dat > iotest01.txt
+diskspd -t4 -o32 -b64k -r64k -w0 -d600 -Sh -D -L -c5G T:\DiskSpd\DiskSpd\amd64\IO02.dat > iotest02.txt
+diskspd -t4 -o32 -b60k -si -w100 -d600 -Sh -D -L -c5G T:\DiskSpd\DiskSpd\amd64\IO03.dat > iotest03.txt
+diskspd -t4 -o32 -b60k -si -w100 -d600 -Sh -D -L -c5G T:\DiskSpd\DiskSpd\amd64\IO04.dat > iotest04.txt
+
+diskspd -t4 -o32 -b512k -si -w0 -d300 -Sh -D -L -c5G R:\4thread_seq_read.dat > C:\Users\a.momen\Desktop\4thread_seq_read.txt
+``` Disk SPD speedy
+
+### Check disk allocation size for a drive
+fsutil fsinfo ntfsinfo O: | find "Per Cluster"
+
+
+
+### turn off disable User Account Control UAC powershell 
+```
+# Disable UAC prompts and set registry keys
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "EnableLUA" -Value 0 -Force
+Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System" -Name "ConsentPromptBehaviorAdmin" -Value 0 -Force
+Restart-Computer -Force
+```
+
+net share Backups=R:\Backups /GRANT:Everyone,READ
+
+# port occupied, port already in use, socket
+Restart-Service -Name hns -Force
+# If not worked, also do this:
+# Disable ICS so it doesn’t auto-recreate NATs
+Set-Service -Name SharedAccess -StartupType Disabled
+Stop-Service  -Name SharedAccess -Force
+sc.exe config SharedAccess start= demand; sc.exe triggerinfo SharedAccess start/networkon stop/networkoff
+Start-Service  -Name SharedAccess
+
+
+
+TaskBar pinned items
+%userprofile%\AppData\Roaming\Microsoft\Internet Explorer\Quick Launch\User Pinned\TaskBar
+
+### Increase the number of jump list entries pinned stacked in the taskbar
+%APPDATA%\Microsoft\Windows\Recent\CustomDestinations\
+%APPDATA%\Microsoft\Windows\Recent\AutomaticDestinations\
+#
+C:\Users\Ali\AppData\Roaming\Microsoft\Windows\Recent\
+C:\Users\Ali\AppData\Roaming\Microsoft\Windows\Recent\CustomDestinations
+C:\Users\Ali\AppData\Roaming\Microsoft\Windows\Recent\AutomaticDestinations
+reg add "HKCU\SOFTWARE\Microsoft\Windows\CurrentVersion\Explorer\Advanced" /v JumpListItems_Maximum /t REG_DWORD /d 18 /f
+taskkill /f /im explorer.exe && start explorer.exe
+
+
+#####################################################
+DISM /Online /Add-Package /PackagePath:"\tsclient\Cloud Storage\OpenSSH-Server-Package~31bf3856ad364e35~amd64~~.cab"
+Get-Service sshd | Set-Service -StartupType Automatic
+Start-Service sshd
+New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 22
+######## Change port ################################
+# Edit sshd_config (change port from 22 to desired port, e.g., 2222)
+$configPath = "C:\ProgramData\ssh\sshd_config"
+(Get-Content $configPath) -replace '#Port 22', 'Port 2222' -replace '^Port 22', 'Port 2222' | Set-Content $configPath
+
+# Restart SSH service
+Restart-Service sshd
+
+# Update firewall rule
+Remove-NetFirewallRule -Name sshd -ErrorAction SilentlyContinue
+New-NetFirewallRule -Name sshd -DisplayName 'OpenSSH Server (sshd)' -Enabled True -Direction Inbound -Protocol TCP -Action Allow -LocalPort 2222
+
+# Verify
+Get-Content $configPath | Select-String -Pattern '^Port'
+Get-NetFirewallRule -Name sshd | Get-NetFirewallPortFilter
+######################################################
+
+
+Finish ■
