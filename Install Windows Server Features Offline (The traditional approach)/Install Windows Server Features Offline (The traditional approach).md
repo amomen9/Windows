@@ -59,7 +59,7 @@ Optionally, change the OpenSSH Server default port:
 1. Edit the SSH configuration file
 notepad C:\ProgramData\ssh\sshd_config
 
-2. Perform other modifications
+2. Then run:
 
 ```PowerShell
 # New port value
