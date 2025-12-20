@@ -17,23 +17,32 @@ Here, we must make certain of several factors:
  
 * The packages are stable and production-ready.
 
-### Installing features:
-
-If you need to install the packages offline, first you need to transfer them to the server. On the following
- link you can find the iso image containing the packages for Windows Server:
+If your Windows Server version is 2022 and later, one **very viable candidate** is the Microsoft Application Compatibility `Feature on Demand (FOD)` packages that can be downloaded
+ from the following Microsoft link:
  
 [Install Server Core Application Compatibility Feature on Demand | Microsoft Learn](https://learn.microsoft.com/en-us/windows-server/get-started/server-core-app-compatibility-feature-on-demand?tabs=windows-update)
 
-Download the respective iso according to your Windows Server version, then mount it. In the mounted image
- files, search for the feature you want. For example, OpenSSH. Identify the `.cab` file.
+Download the respective ISO image file (for example, for Windows Server 2022) and mount it to your Windows machine.
+ If your Windows Server version is 2019 and earlier, the packages might not be obtainable this way.
+ You might need to check other locations like the official GitHub repositories.
 
-Suppose the drive letter of the mounted image is "G:\". In that case, you can run 
+### Installing features:
+
+If you need to install the packages offline, first you need to transfer them to the server.
+
+Download the respective iso according to your Windows Server version, then mount it. In the mounted image
+ files, search for the feature you want. For example, OpenSSH. Identify the `.cab` file by searching
+ `OpenSSH` in the mounted image and copy its path.
+
+You can run the following:
 
 ```cmd
-DISM /Online /Add-Package /PackagePath:"G:\LanguagesAndOptionalFeatures\OpenSSH-Server-Package~31bf3856ad364e35~amd64~~.cab"
+DISM /Online /Add-Package /PackagePath:"<package path>"
 ```
 
-to install the package. Subsequently, do whatever actions that are needed after the installation of the package.
+to install the package. 
+
+Subsequently, do whatever actions that are needed after the installation of the package.
  For example, for OpenSSH-Server, you need to start the service and set it to start up automatically on boot.
   You can do that by using the following commands:
   
