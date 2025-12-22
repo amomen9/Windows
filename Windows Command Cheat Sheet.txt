@@ -1986,7 +1986,7 @@ diskspd -t4 -o32 -b60k -si -w100 -d600 -Sh -D -L -c5G T:\DiskSpd\DiskSpd\amd64\I
 diskspd -t4 -o32 -b512k -si -w0 -d300 -Sh -D -L -c5G R:\4thread_seq_read.dat > C:\Users\a.momen\Desktop\4thread_seq_read.txt
 ``` Disk SPD speedy
 
-### Check disk allocation size for a drive
+### Check disk allocation unit size for a drive
 fsutil fsinfo ntfsinfo O: | find "Per Cluster"
 
 
