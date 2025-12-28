@@ -1736,6 +1736,7 @@ netsh interface portproxy add v4tov4 listenport=9000 listenaddress=0.0.0.0 conne
 "\\fecm\Source\Git-2.46.1-64-bit.exe" /SP- /VERYSILENT /SUPPRESSMSGBOXES /NOCANCEL /NORESTART /CLOSEAPPLICATIONS /FORCECLOSEAPPLICATIONS /RESTARTAPPLICATIONS /LOGCLOSEAPPLICATIONS
 "C:\Program Files\Git\cmd\git.exe" -v
 cd && cd \ && mkdir -p DBA_Git
+<glpat> means GitLab access token
 cd && cd C:\DBA_Git && "C:\Program Files\Git\cmd\git.exe" clone https://mo.abbaspour:<glpat>@git.mofid.dev/mo.abbaspour/database-servers-documentation.git 2>nul
 cd && cd C:\DBA_Git\database-servers-documentation && "C:\Program Files\Git\cmd\git" pull https://mo.abbaspour:<glpat>@git.mofid.dev/mo.abbaspour/database-servers-documentation.git
 ``` Install, check, and pull GIT
