@@ -10,7 +10,7 @@
 
 ## The username and password used to authenticate to all of the target servers
 $username = 'domain.com\a.momen'
-$password = 'P@@S$sW0rd'
+$password = '<REDACTED_PASSWORD>'
 ## The target servers IP/NS Name
 $servers=@(
 "<IP1>", "<IP2>", "<NS Name1>", "<NS Name2>" 

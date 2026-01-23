@@ -77,11 +77,11 @@ $filtered | Sort-Object Name | Export-Csv -Path "$env:USERPROFILE\Desktop\Instal
 
 
 # Install VNC-Server
-"%userprofile%\Dropbox\apps\VNC.Connect.Enterprise.6.4.1\VNC.Connect.Enterprise.6.4.1_Soft98.iR.exe" /qn REBOOT=ReallySuppress LICENSEKEY=CX3RJ-PQZTH-4LKRB-X38UM-XJNGA ENABLEAUTOUPDATECHECKS=1 ENABLEANALYTICS=1
+"%userprofile%\Dropbox\apps\VNC.Connect.Enterprise.6.4.1\VNC.Connect.Enterprise.6.4.1_Soft98.iR.exe" /qn REBOOT=ReallySuppress LICENSEKEY=<REDACTED_LICENSE_KEY> ENABLEAUTOUPDATECHECKS=1 ENABLEANALYTICS=1
 curl --output 1.exe https://www.realvnc.com/download/file/vnc.files/VNC-Server-6.7.4-Windows.exe
 
 psexec \\WSER19HVVM cmd
-psexec -u WSER19HVVM\administrator -p 111036 \\ServerName cmd
+psexec -u WSER19HVVM\administrator -p <REDACTED_PASSWORD> \\ServerName cmd
 
 sleep, wait, NOOP, NOP
 timeout /t 5 & taskkill /T /F /IM explorer.exe & timeout /t 8 & start explorer.exe 
@@ -1832,14 +1832,14 @@ wmic useraccount where name='username' set PasswordExpires=False
 
 ### PowerShell Session
 
-# $username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath "cmd.exe" -Credential $cred -ArgumentList "/k whoami"
+# $username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString '<REDACTED_PASSWORD>' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath "cmd.exe" -Credential $cred -ArgumentList "/k whoami"
 
-##$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList '-NoExit','-Command','(Get-ClusterGroup | Where-Object { $_.Name -like \"*SQL Server*\" }).OwnerNode.Name' 
+##$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString '<REDACTED_PASSWORD>' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList '-NoExit','-Command','(Get-ClusterGroup | Where-Object { $_.Name -like \"*SQL Server*\" }).OwnerNode.Name' 
 ##
-##powershell "$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList '-Command', 'Enable-PSRemoting -Force -SkipNetworkProfileCheck; netstat -anob | findstr 5985;'"
+##powershell "$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString '<REDACTED_PASSWORD>' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'powershell.exe' -Credential $cred -ArgumentList '-Command', 'Enable-PSRemoting -Force -SkipNetworkProfileCheck; netstat -anob | findstr 5985;'"
 ##
 ##
-##$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString 'J2TCnLn$aAcP*W' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'cmd.exe' -Credential $cred -ArgumentList '/c whoami'
+##$username = 'mofid.dc\RedgateMon'; $password = ConvertTo-SecureString '<REDACTED_PASSWORD>' -AsPlainText -Force; $cred = New-Object System.Management.Automation.PSCredential($username, $password); Start-Process -FilePath 'cmd.exe' -Credential $cred -ArgumentList '/c whoami'
 
 
 ###
