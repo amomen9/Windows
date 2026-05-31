@@ -1,6 +1,15 @@
 # PC Power Control
 
-Automatically puts a Windows laptop into hibernation when it is running on battery power **and** the lid is closed. A scheduled task fires every 20 seconds as `NT AUTHORITY\SYSTEM` — no user session required.
+## Intro
+
+Ever closed your laptop, put it in a bag or backpack, and later noticed that it had woken up and become dangerously hot inside the bag? That can cause real problems:
+
+1. The device can be damaged or wear out faster. In bad cases, fans can fail, start making noise, or stop working properly.
+2. The battery can be drained when you needed it later.
+3. Energy is wasted.
+4. There is a small but real chance of heat damage to the bag and nearby items.
+
+This project is meant to prevent that situation. It automatically hibernates a Windows laptop when it is on battery power and the lid is closed, so if the machine wakes at the wrong time or you forgot to shut it down properly, it can protect itself before heat builds up. The core power-state logic lives in a single compiled Windows app so the decision stays together and runs reliably.
 
 ---
 
@@ -8,30 +17,40 @@ Automatically puts a Windows laptop into hibernation when it is running on batte
 
 | File | Purpose |
 |------|---------|
-| `check_false_consciesnous.ps1` | Main script — contains both the scheduled-task registration logic (`-Setup`) and the per-execution monitoring logic |
-| `check_false_consciesnous.log` | Append-only log file created on first run, one line per execution |
+| `Program.cs` | Compiled runtime app: listens for lid/power notifications, reads temperatures, logs decisions, and hibernates when appropriate |
+| `PCPowerControl.csproj` | Windows desktop project used to build the runtime app |
+| `check_false_consciesnous_setup.ps1` | Setup script: publishes the app and registers the scheduled task |
+| `check_false_consciesnous.ps1` | Legacy PowerShell runtime script kept for reference |
 
 ---
 
 ## Requirements
 
 - Windows 10 / 11 (x64)
-- PowerShell 5.1 or later
-- Must be run as **Administrator** for setup
-- Optional: [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor) or [OpenHardwareMonitor](https://openhardwaremonitor.org/) running with its WMI service enabled for more accurate GPU temperatures
-- Optional: NVIDIA GPU with drivers installed for `nvidia-smi` GPU temperature readings
+- .NET 10 SDK installed
+- Administrator rights to register the scheduled task
+- PowerShell 5.1 or later for running the setup script
+- Optional: NVIDIA drivers and `nvidia-smi` for GPU temperature reporting
+- Optional: LibreHardwareMonitor or OpenHardwareMonitor if you want additional WMI temperature sources
 
 ---
 
 ## Setup
 
-Open PowerShell **as Administrator** and run:
+Open PowerShell **as Administrator** in this folder and run:
 
 ```powershell
-.\check_false_consciesnous.ps1 -Setup
+.\check_false_consciesnous_setup.ps1
 ```
 
-This registers a scheduled task named `CheckFalseConsciousness` that runs the script every 20 seconds indefinitely as `NT AUTHORITY\SYSTEM` with the highest available privileges. The task starts 30 seconds after registration and resumes automatically after sleep, hibernate, or reboot.
+This script:
+
+- Publishes the compiled app into `.\publish\`
+- Creates a watchdog script beside the executable
+- Registers or replaces the `CheckFalseConsciousness` scheduled task
+- Configures the task to run at boot as `NT AUTHORITY\SYSTEM`
+- Points the task at the watchdog so the executable is relaunched if it exits
+- Enables Task Scheduler history logging
 
 To verify the task was created:
 
@@ -47,90 +66,178 @@ Unregister-ScheduledTask -TaskName 'CheckFalseConsciousness' -Confirm:$false
 
 ---
 
-## Behavior
+## Runtime behavior
 
-At every 20-second interval the script evaluates two conditions — **power source** and **lid state** — and prints (and logs) exactly one of these messages:
+The executable watches for Windows power notifications and logs one of these messages whenever the power source or lid state changes:
 
-```
+```text
 <timestamp>: Abort ... - The PC is running on AC power, and the lid is open. [CPU: 61°C | GPU: 54°C | MB: 48°C]
 <timestamp>: Abort ... - The PC is running on battery power, but the lid is open. [CPU: 61°C | GPU: 54°C | MB: 48°C]
 <timestamp>: Abort ... - The PC is running on AC power, and the lid is closed. [CPU: 61°C | GPU: 54°C | MB: 48°C]
 <timestamp>: Hibernating ... - The PC is running on battery power, and the lid is closed. [CPU: 61°C | GPU: 54°C | MB: 48°C]
 ```
 
-Only the last case triggers hibernation. The machine wakes normally from any configured wake source (power button, keyboard, scheduled wake timer, etc.).
+Only the final case triggers hibernation.
+
+### Temperature reporting
+
+Temperatures are collected on every execution from these sources:
+
+| Sensor | Source |
+|--------|--------|
+| CPU | `MSAcpi_ThermalZoneTemperature` via Windows WMI |
+| GPU | `nvidia-smi`, then fallback WMI sources if available |
+| MB | `MSAcpi_ThermalZoneTemperature` via Windows WMI |
+
+If a source is unavailable, that field is logged as `N/A`.
+
+---
+
+## Waking up reasons
+
+A laptop can wake for many reasons, not just the lid opening. Common causes include:
+
+- USB devices such as mice, keyboards, dongles, receivers, docks, and external adapters
+- Bluetooth devices that are allowed to wake the machine
+- Network adapters using Wake-on-LAN
+- Wake timers created by scheduled tasks, maintenance, or update activity
+- Power-button, lid, AC-attach, or firmware-triggered wake events
+- BIOS/UEFI options such as RTC alarms or platform wake features
+
+If the laptop is going into a bag, the safest decision is usually to prefer hibernation and to reduce or remove wake sources that you do not actually need.
+
+### Useful `powercfg` commands
+
+Windows exposes wake information through `powercfg`:
+
+```powershell
+powercfg /lastwake
+```
+
+Shows the most recent wake source. This is the first command to check when you are trying to identify what woke the laptop.
+
+```powershell
+powercfg /devicequery wake_armed
+```
+
+Lists devices that are currently allowed to wake the system. This often reveals USB mice, keyboards, docks, or adapters that can wake the laptop even when you did not expect them to.
+
+```powershell
+powercfg /waketimers
+```
+
+Shows wake timers that can bring the laptop out of sleep for scheduled work.
+
+```powershell
+powercfg /devicequery wake_programmable
+```
+
+Lists devices that can be armed for wake. This helps when deciding whether a device should stay wake-capable or be disabled.
+
+### How to tweak wake behavior
+
+If a device should not wake the laptop, disable its wake permission. You can do that in Device Manager or with `powercfg`:
+
+```powershell
+powercfg /devicedisablewake "Device Name"
+```
+
+To allow it again later:
+
+```powershell
+powercfg /deviceenablewake "Device Name"
+```
+
+Typical candidates to review:
+
+- USB mouse receivers
+- USB keyboards
+- Bluetooth adapters
+- Docking stations
+- Network adapters with Wake-on-LAN enabled
+
+### Practical countermeasures
+
+When the machine is used mostly on the go:
+
+- Prefer hibernate over sleep before putting the laptop in a bag
+- Remove wake permission from devices you do not need to wake the system
+- Disable Wake-on-LAN if remote wake is not required
+- Review scheduled tasks that create wake timers
+- Check BIOS/UEFI wake settings if Windows changes do not solve the issue
+- Re-test with `powercfg /lastwake` after an unexpected wake to confirm the source
+
+A good rule is to keep only the minimum wake sources necessary for your workflow. If remote wake or a dock matters, keep those enabled; otherwise, strip wake permission aggressively when portability and heat safety matter more.
 
 ---
 
 ## How it works
 
-### Power source detection
+- `GetSystemPowerStatus` is used to detect whether the laptop is on AC power or battery power.
+- Windows power-setting notifications are used to detect lid and power-source changes.
+- The app runs as a background Windows Forms process with a hidden window so it can receive those notifications reliably.
+- The scheduled task launches a watchdog script, and the watchdog restarts the executable whenever it exits.
+- When the laptop is on battery and the lid is closed, the app waits briefly and then runs:
 
-Uses the Win32 `GetSystemPowerStatus` API (Kernel32.dll) via P/Invoke. The `ACLineStatus` field returns `0` for battery and `1` for AC. This is the same data source Windows uses internally and is reliable in all power states.
-
-### Lid state detection
-
-Queries `WmiMonitorBasicDisplayParams.Active` in the `root\wmi` WMI namespace. The built-in laptop panel (identified as the lexicographically first monitor instance) transitions to `Active = false` when the lid is physically closed.
-
-**Fail-safe:** if the WMI query fails or returns no data (e.g., no display driver loaded), the lid state is treated as **open** and sleep is never triggered unintentionally.
-
-**Clamshell mode:** if an external monitor is connected while the lid is closed, the external display stays active. The script correctly detects the built-in panel as inactive and treats the lid as closed. Whether to sleep in that scenario is controlled solely by the battery condition — on AC power the machine will not sleep even with the lid closed.
-
-### Temperature reporting
-
-Temperatures are collected from three sources and reported on every execution regardless of the sleep decision:
-
-| Sensor | Source | Notes |
-|--------|--------|-------|
-| CPU | `MSAcpi_ThermalZoneTemperature` (`root\wmi`) | ACPI thermal zones; works headless as SYSTEM with no third-party agent. Zone names are matched by keyword (`CPU`, `PROC`, `CORE`); falls back to the hottest zone. |
-| GPU | `nvidia-smi` → LibreHardwareMonitor WMI → OpenHardwareMonitor WMI | Tried in order; reports `N/A` if none are available. |
-| MB (motherboard) | `MSAcpi_ThermalZoneTemperature` (`root\wmi`) | Matched by keyword (`MB`, `SYS`, `BOARD`); falls back to the second-hottest zone. |
-
-### Hibernation command
-
-```
+```powershell
 shutdown.exe /h
 ```
 
-This invokes Windows hibernation directly.
+---
 
-### Scheduled task internals
+## Build manually
 
-The task is registered via a raw XML definition so that a **20-second repetition interval** can be set — the Task Scheduler GUI enforces a 1-minute minimum, but the underlying XML schema supports seconds. Key settings:
+If you want to build the executable yourself:
 
-| Setting | Value | Reason |
-|---------|-------|--------|
-| `RunLevel` | `HighestAvailable` | Full administrative privileges |
-| `UserId` | `S-1-5-18` (SYSTEM) | Runs without any user logged in |
-| `MultipleInstancesPolicy` | `IgnoreNew` | Prevents overlap if a run takes longer than 20 s |
-| `DisallowStartIfOnBatteries` | `false` | Must run on battery to be useful |
-| `StopIfGoingOnBatteries` | `false` | Same reason |
-| `StartWhenAvailable` | `true` | Catches up missed triggers after wake/reboot |
-| `ExecutionTimeLimit` | `PT1M` | Hard-kills a hung instance after 1 minute |
+```powershell
+dotnet build .\PCPowerControl.csproj -c Release
+```
+
+To publish the runnable executable:
+
+```powershell
+dotnet publish .\PCPowerControl.csproj -c Release -o .\publish
+```
+
+### Command-line options
+
+By default, the executable refreshes every `20000` milliseconds and sleeps the laptop when it needs to suspend.
+
+You can change how often the executable refreshes its battery state with either:
+
+```powershell
+.\publish\PCPowerControl.exe --interval-ms 5000
+```
+
+or:
+
+```powershell
+.\publish\PCPowerControl.exe -i 5000
+```
+
+You can also choose the suspend action:
+
+```powershell
+.\publish\PCPowerControl.exe --action sleep
+```
+
+or:
+
+```powershell
+.\publish\PCPowerControl.exe --action hibernate
+```
+
+Short form:
+
+```powershell
+.\publish\PCPowerControl.exe -a sleep
+```
+
+The interval value is clamped between `250` and `60000` milliseconds.
 
 ---
 
-## Log file
+## Notes
 
-Each execution appends one UTF-8 line to `check_false_consciesnous.log` in the same directory as the script. To tail the log in real time:
-
-```powershell
-Get-Content .\check_false_consciesnous.log -Wait -Tail 20
-```
-
----
-
-## Troubleshooting
-
-**Lid state always shows as open**
-The `WmiMonitorBasicDisplayParams` class requires the display driver stack to be loaded. On some systems this class is unavailable when no user is logged in. In that case the script logs `Abort` (fail-safe) and never hibernates. As a workaround, configure the native Windows lid-close action to sleep via Settings → System → Power & sleep → Additional power settings → Choose what closing the lid does, and disable this script.
-
-**Temperatures show N/A for GPU**
-Install [LibreHardwareMonitor](https://github.com/LibreHardwareMonitor/LibreHardwareMonitor), enable *Run On Windows Startup* and *Options → WMI Provider*, then restart the scheduled task. NVIDIA users can alternatively rely on `nvidia-smi` which ships with the driver.
-
-**Script does not run / access denied**
-Confirm the task is registered and enabled:
-```powershell
-Get-ScheduledTask -TaskName 'CheckFalseConsciousness' | Select-Object State, LastRunTime, LastTaskResult
-```
-A `LastTaskResult` of `0x1` means the script exited with an error. Check the log file for the last written line to see where execution stopped.
+- The legacy PowerShell runtime is still present in the repo, but the scheduled task now uses the compiled executable through the watchdog wrapper.
+- Logs are written beside the published executable.

@@ -1,0 +1,5 @@
+C:\Users\Ali\git\MyGitHubRepos\Before Uni\Windows\PC Power Control\publish\PCPowerControl.exe
+C:\Users\Ali\git\MyGitHubRepos\Before Uni\Windows\PC Power Control\publish\PCPowerControl.dll
+C:\Users\Ali\git\MyGitHubRepos\Before Uni\Windows\PC Power Control\publish\PCPowerControl.deps.json
+C:\Users\Ali\git\MyGitHubRepos\Before Uni\Windows\PC Power Control\publish\PCPowerControl.runtimeconfig.json
+C:\Users\Ali\git\MyGitHubRepos\Before Uni\Windows\PC Power Control\publish\PCPowerControl.pdb

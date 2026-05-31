@@ -1,0 +1,8 @@
+﻿Waiting for lid state notification ... [battery=False]
+2026-05-31 01:24:13: Abort ... - The PC is running on AC power, and the lid is open. [CPU: N/A | GPU: 50°C | MB: N/A]
+Waiting for lid state notification ... [battery=False]
+2026-05-31 01:26:45: Abort ... - The PC is running on AC power, and the lid is open. [CPU: N/A | GPU: 49°C | MB: N/A]
+2026-05-31 01:27:12: Abort ... - The PC is running on AC power, and the lid is closed. [CPU: N/A | GPU: 48°C | MB: N/A]
+2026-05-31 01:27:24: Abort ... - The PC is running on AC power, and the lid is open. [CPU: N/A | GPU: 49°C | MB: N/A]
+2026-05-31 01:27:32: Abort ... - The PC is running on AC power, and the lid is closed. [CPU: N/A | GPU: 49°C | MB: N/A]
+2026-05-31 01:27:34: Abort ... - The PC is running on AC power, and the lid is open. [CPU: N/A | GPU: 49°C | MB: N/A]
