@@ -9,7 +9,7 @@ Ever closed your laptop, put it in a bag or backpack, and later noticed that it 
 3. Energy is wasted.
 4. There is a small but real chance of heat damage to the bag and nearby items.
 
-This project is meant to prevent that situation. It automatically hibernates a Windows laptop when it is on battery power and the lid is closed, so if the machine wakes at the wrong time or you forgot to shut it down properly, it can protect itself before heat builds up. The core power-state logic lives in a single compiled Windows app so the decision stays together and runs reliably.
+This project will resolve the problem in case your device is wrongly waked (some possible reasons have been told in ["Waking up reasons"](#waking-up-reasons)) in your bag or you have forgotten to turn it off and it has not slept in a suitable timely manner. In fact, Microsoft must have done this but did not so I was forced to do it.
 
 ---
 
