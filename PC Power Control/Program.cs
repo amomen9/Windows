@@ -135,7 +135,7 @@ internal static class Program
 
 internal sealed record AppOptions(int RefreshIntervalMs, SuspendMode SuspendMode)
 {
-    public static AppOptions Default => new(20000, SuspendMode.Sleep);
+    public static AppOptions Default => new(20000, SuspendMode.Hibernate);
 
     public static AppOptions Parse(string[] args)
     {

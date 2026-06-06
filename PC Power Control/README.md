@@ -9,18 +9,18 @@ Ever closed your laptop, put it in a bag or backpack, and later noticed that it 
 3. Energy is wasted.
 4. There is a small but real chance of heat damage to the bag and nearby items.
 
-This project will resolve the problem in case your device is wrongly waked (some possible reasons have been told in ["Waking up reasons"](#waking-up-reasons)) in your bag or you have forgotten to turn it off and it has not slept in a suitable timely manner. In fact, Microsoft must have done this but did not so I was forced to do it.
+This project will resolve the problem in case your device is wrongly waked (some possible reasons have been told in [&#34;Waking up reasons&#34;](#waking-up-reasons) in your bag or you have forgotten to turn it off and it has not slept in a suitable timely manner. In fact, Microsoft must have done this but did not so I was forced to do it.
 
 ---
 
 ## Files
 
-| File | Purpose |
-|------|---------|
-| `Program.cs` | Compiled runtime app: listens for lid/power notifications, reads temperatures, logs decisions, and hibernates when appropriate |
-| `PCPowerControl.csproj` | Windows desktop project used to build the runtime app |
-| `check_false_consciesnous_setup.ps1` | Setup script: publishes the app and registers the scheduled task |
-| `check_false_consciesnous.ps1` | Legacy PowerShell runtime script kept for reference |
+| File                                   | Purpose                                                                                                                        |
+| -------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------ |
+| `Program.cs`                         | Compiled runtime app: listens for lid/power notifications, reads temperatures, logs decisions, and hibernates when appropriate |
+| `PCPowerControl.csproj`              | Windows desktop project used to build the runtime app                                                                          |
+| `check_false_consciesnous_setup.ps1` | Setup script: publishes the app and registers the scheduled task                                                               |
+| `check_false_consciesnous.ps1`       | Legacy PowerShell runtime script kept for reference                                                                            |
 
 ---
 
@@ -42,6 +42,8 @@ Open PowerShell **as Administrator** in this folder and run:
 ```powershell
 .\check_false_consciesnous_setup.ps1
 ```
+
+This script must be run from an elevated PowerShell session because it registers and refreshes the scheduled task under `NT AUTHORITY\SYSTEM`.
 
 This script:
 
@@ -83,11 +85,11 @@ Only the final case triggers hibernation.
 
 Temperatures are collected on every execution from these sources:
 
-| Sensor | Source |
-|--------|--------|
-| CPU | `MSAcpi_ThermalZoneTemperature` via Windows WMI |
-| GPU | `nvidia-smi`, then fallback WMI sources if available |
-| MB | `MSAcpi_ThermalZoneTemperature` via Windows WMI |
+| Sensor | Source                                                 |
+| ------ | ------------------------------------------------------ |
+| CPU    | `MSAcpi_ThermalZoneTemperature` via Windows WMI      |
+| GPU    | `nvidia-smi`, then fallback WMI sources if available |
+| MB     | `MSAcpi_ThermalZoneTemperature` via Windows WMI      |
 
 If a source is unavailable, that field is logged as `N/A`.
 
@@ -201,7 +203,10 @@ dotnet publish .\PCPowerControl.csproj -c Release -o .\publish
 
 ### Command-line options
 
-By default, the executable refreshes every `20000` milliseconds and sleeps the laptop when it needs to suspend.
+Default values, in order:
+
+1. `--interval-ms` / `-i`: `20000`
+2. `--action` / `-a`: `hibernate`
 
 You can change how often the executable refreshes its battery state with either:
 
@@ -234,6 +239,10 @@ Short form:
 ```
 
 The interval value is clamped between `250` and `60000` milliseconds.
+
+### Configuration storage
+
+There is no separate config file for these parameters. The defaults are hard-coded in `Program.cs`, and any overrides are passed on the command line when the executable is launched. The setup script stores the scheduled task definition in Task Scheduler and writes the watchdog script into `.\publish\`.
 
 ---
 

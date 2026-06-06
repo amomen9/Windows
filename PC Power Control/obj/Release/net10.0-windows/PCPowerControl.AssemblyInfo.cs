@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("PCPowerControl")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Release")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+08a09d22475815923efa69f96fd845b7060a97de")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+fab7854f322ea80aa6fbfe25e8c21a9a0e4a085d")]
 [assembly: System.Reflection.AssemblyProductAttribute("PCPowerControl")]
 [assembly: System.Reflection.AssemblyTitleAttribute("PCPowerControl")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
